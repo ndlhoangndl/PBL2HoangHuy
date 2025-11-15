@@ -2,50 +2,100 @@
 #define SYSTEM_H
 
 #include <vector>
-#include <map>
 #include "JobSeeker.h"
 #include "Employer.h"
 #include "Admin.h"
 #include "Job.h"
+#include "Application.h"
+
 using namespace std;
 
 class System {
 private:
     vector<JobSeeker> jobSeekers;
     vector<Employer> employers;
-    vector<Admin> admins;
+    Admin defaultAdmin;
     vector<Job> jobs;
+    vector<Application> applications;
+
+    vector<string> categories;  // Ngành nghề
+    vector<string> locations;   // Khu vực
 
     int nextJobId;
+    int nextAppId;
 
-    // Menu functions
-    void jobSeekerMenu(JobSeeker &js);
-    void employerMenu(Employer &e);
+    // ========== MENU FUNCTIONS ==========
     void adminMenu(Admin &a);
+    void employerMenu(Employer &e);
+    void jobSeekerMenu(JobSeeker &js);
 
-    // Job functions
-    void searchJobs(JobSeeker &js);
-    void applyForJob(JobSeeker &js);
-    void viewAppliedJobs(JobSeeker &js);
-    void updateProfile(JobSeeker &js);
+    // ========== ADMIN FUNCTIONS ==========
+    // Quản lý danh sách
+    void admin_ViewAllUsers();
 
-    // Employer functions
-    void createJob(Employer &e);
-    void viewMyJobs(Employer &e);
-    void editJob(Employer &e);
-    void deleteJob(Employer &e);
+    //  Quản lý tài khoản nhà tuyển dụng
+    void admin_CreateEmployer();
+    void admin_UpdateEmployer();
+    void admin_DeleteEmployer();
 
-    // Admin functions
-    void viewAllJobs();
-    void approveJobs();
-    void viewStatistics();
+    //  Quản lý danh mục
+    void admin_ManageCategories();
 
-    // Helper functions
+    //  Quản lý tin tuyển dụng
+    void admin_ManageJobs();
+    void admin_ApproveJobs();
+    void admin_EditJob();
+    void admin_DeleteJob();
+
+    // Thống kê
+    void admin_ViewStatistics();
+
+    // ========== EMPLOYER FUNCTIONS ==========
+    //  Quản lý tin tuyển dụng
+    void employer_PostJob(Employer &e);
+    void employer_ViewMyJobs(Employer &e);
+    void employer_EditJob(Employer &e);
+    void employer_DeleteJob(Employer &e);
+
+    //  Quản lý ứng viên
+    void employer_ViewApplications(Employer &e);
+    void employer_FilterApplications(Employer &e);
+    void employer_SelectCandidate(Employer &e);
+
+    //  Quản lý tài khoản
+    void employer_UpdateProfile(Employer &e);
+    void employer_ViewHistory(Employer &e);
+
+    // ========== JOBSEEKER FUNCTIONS ==========
+    //  Quản lý hồ sơ
+    void jobseeker_UpdateCV(JobSeeker &js);
+    void jobseeker_UploadCVFile(JobSeeker &js);
+    void jobseeker_UpdateProfile(JobSeeker &js);
+
+    //Tìm kiếm việc làm
+    void jobseeker_SearchJobs(JobSeeker &js);
+    void jobseeker_ViewJobDetail(JobSeeker &js);
+
+    // Ứng tuyển
+    void jobseeker_ApplyJob(JobSeeker &js);
+    void jobseeker_ViewApplicationStatus(JobSeeker &js);
+
+    //  Quản lý tài khoản
+    void jobseeker_ViewHistory(JobSeeker &js);
+    void jobseeker_ViewNotifications(JobSeeker &js);
+
+    // ========== HELPER FUNCTIONS ==========
     string generateJobId();
-    Job* findJobById(string jobId);
+    string generateAppId();
+    Job* findJobById(const string& jobId);
+    JobSeeker* findJobSeekerById(const string& id);
+    Employer* findEmployerById(const string& id);
+    void initializeDefaultAdmin();
+    void initializeDefaultCategories();
+    void sendNotificationToJobSeeker(const string& jobSeekerId, const string& message);
 
 public:
-    System() : nextJobId(1) {}
+    System();
 
     void run();
     void registerUser();

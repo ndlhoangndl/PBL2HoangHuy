@@ -2,40 +2,65 @@
 #define EMPLOYER_H
 
 #include "User.h"
-#include "Job.h"
 #include <string>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
 class Employer : public User {
 private:
     string companyName;
-    vector<string> postedJobIds;  // Danh sách ID công việc đã đăng
+    string companyAddress;
+    string companyDescription;
+    string industry;
+    vector<string> postedJobIds;
 
 public:
     Employer(string id, string username, string password, string email, string phone)
-        : User(id, username, password, email, phone), companyName("") {}
+        : User(id, username, password, email, phone) {}
 
     string getRole() const override { return "employer"; }
 
-    void setCompanyName(string name) { companyName = name; }
-    string getCompanyName() const { return companyName; }
+    // Setters
+    void setCompanyName(const string& name) { companyName = name; }
+    void setCompanyAddress(const string& addr) { companyAddress = addr; }
+    void setCompanyDescription(const string& desc) { companyDescription = desc; }
+    void setIndustry(const string& ind) { industry = ind; }
 
-    void addPostedJob(string jobId) {
+    // Getters
+    string getCompanyName() const { return companyName; }
+    string getCompanyAddress() const { return companyAddress; }
+    string getCompanyDescription() const { return companyDescription; }
+    string getIndustry() const { return industry; }
+
+    // Job management
+    void addPostedJob(const string& jobId) {
         postedJobIds.push_back(jobId);
     }
 
-    vector<string> getPostedJobIds() const { return postedJobIds; }
+    void removePostedJob(const string& jobId) {  // ✅ THÊM HÀM NÀY
+        auto it = find(postedJobIds.begin(), postedJobIds.end(), jobId);
+        if(it != postedJobIds.end()) {
+            postedJobIds.erase(it);
+        }
+    }
+
+    vector<string> getPostedJobIds() const {
+        return postedJobIds;
+    }
 
     void displayInfo() const override {
         User::displayInfo();
-        cout << "Company: " << (companyName.empty() ? "Chua cap nhat" : companyName) << "\n";
-        cout << "So tin da dang: " << postedJobIds.size() << "\n";
-    }
-
-    void postJob() {
-        cout << "Dang tin tuyen dung\n";
+        cout << "Vai tro: Nha tuyen dung\n";
+        if(!companyName.empty()) {
+            cout << "\n--- THONG TIN CONG TY ---\n";
+            cout << "Ten cong ty: " << companyName << "\n";
+            cout << "Dia chi: " << companyAddress << "\n";
+            cout << "Nganh nghe: " << industry << "\n";
+            cout << "Mo ta: " << companyDescription << "\n";
+            cout << "So tin da dang: " << postedJobIds.size() << "\n";
+        }
     }
 };
 

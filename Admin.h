@@ -2,8 +2,6 @@
 #define ADMIN_H
 
 #include "User.h"
-#include <string>
-using namespace std;
 
 class Admin : public User {
 public:
@@ -12,12 +10,9 @@ public:
 
     string getRole() const override { return "admin"; }
 
-    void manageAccounts() {
-        cout << "Quan ly tai khoan (demo)\n";
-    }
-
-    void approvePosts() {
-        cout << "Kiem duyet bai dang (demo)\n";
+    void displayInfo() const override {
+        User::displayInfo();
+        cout << "Vai tro: Quan tri vien\n";
     }
 };
 
