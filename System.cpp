@@ -1330,12 +1330,19 @@ void System::registerUser() {
         cout << "### Email khong hop le! Vui long thu lai.\n";
     }
 
-    cout << "Nhap phone: +84 ";
+    cout << "Nhap so dien thoai: +84 ";
     getline(cin, phone);
 
     phone = "+84" + phone;
 
-    string companyName = nullptr;
+    while (true) {
+        if (User::getPhone(phone).getPhone() == "") break;
+        cout << "So dien thoai da co tren he thong, vui long nhap lai! +84 ";
+        getline(cin, phone);
+        phone = "+84" + phone;
+    }
+
+    string companyName = "null";
 
     if (role == 2) {
         cout << "Nhap ten cong ty: ";

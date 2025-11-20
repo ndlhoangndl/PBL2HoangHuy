@@ -120,6 +120,44 @@ public:
         return User("", "", "", "", "", "", false, "", "");
     }
 
+    // Find user by phone
+    static User getPhone(const std::string &phone, const std::string &filename = "users.json") {
+        json users = PBLJson::loadList(filename);
+
+        for (const auto &u: users) {
+
+            // Safe username check
+            if (u.value("phone", "") == phone) {
+
+                string companyName = "";
+
+                if (u.contains("companyName") && u["companyName"].is_string())
+                    companyName = u["companyName"].get<std::string>();
+
+                User user(
+                    u.value("id", "0"),
+                    u.value("username", ""),
+                    u.value("password", ""),
+                    u.value("email", ""),
+                    u.value("phone", ""),
+                    u.value("fullName", ""),
+                    u.value("isActive", true),
+                    u.value("createdAt", ""),
+                    companyName
+                );
+
+                // Optional role assignment
+                if (u.contains("role") && u["role"].is_string()) {
+                    user.role = u["role"];
+                }
+
+                return user;
+            }
+        }
+
+        return User("", "", "", "", "", "", false, "", "");
+    }
+
 
 protected : [[nodiscard]] static string
             getCurrentDateISO() {
