@@ -2,19 +2,21 @@
 #define SYSTEM_H
 
 #include <vector>
-#include "JobSeeker.h"
-#include "Employer.h"
 #include "Admin.h"
-#include "Job.h"
 #include "Application.h"
+#include "Employer.h"
+#include "Job.h"
+#include "JobSeeker.h"
 
+
+class Job;
 using namespace std;
 
 class System {
 private:
     vector<JobSeeker> jobSeekers;
     vector<Employer> employers;
-    Admin defaultAdmin;
+    Admin admin;
     vector<Job> jobs;
     vector<Application> applications;
 
@@ -34,8 +36,7 @@ private:
     void admin_ViewAllUsers();
 
     //  Quản lý tài khoản nhà tuyển dụng
-    void admin_CreateEmployer();
-    void admin_UpdateEmployer();
+    // void admin_UpdateEmployer();
     void admin_DeleteEmployer();
 
     //  Quản lý danh mục
@@ -82,19 +83,20 @@ private:
 
     //  Quản lý tài khoản
     void jobseeker_ViewHistory(JobSeeker &js);
-    void jobseeker_ViewNotifications(JobSeeker &js);
+    // void jobseeker_ViewNotifications(JobSeeker &js);
 
     // ========== HELPER FUNCTIONS ==========
     string generateJobId();
     string generateAppId();
-    Job* findJobById(const string& jobId);
-    JobSeeker* findJobSeekerById(const string& id);
-    Employer* findEmployerById(const string& id);
+    Job* findJobById(const string &jobId);
+    JobSeeker* findJobSeekerById(const string &id);
+    Employer* findEmployerById(const string &id);
     void initializeDefaultAdmin();
     void initializeDefaultCategories();
-    void sendNotificationToJobSeeker(const string& jobSeekerId, const string& message);
+    // void sendNotificationToJobSeeker(const string& jobSeekerId, const string& message);
 
 public:
+    explicit System(const Admin & admin);
     System();
 
     void run();

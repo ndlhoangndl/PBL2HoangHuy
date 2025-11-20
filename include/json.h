@@ -2,6 +2,7 @@
 
 #include <json.hpp>
 #include <fstream>
+#include <../User.h>
 
 #ifndef JSON_H
 #define JSON_H
@@ -25,32 +26,13 @@ namespace PBLJson {
         out << j.dump(4);   // pretty print
     }
 
-    // Append new user
-    inline void addUser(const std::string& filename, const std::string& username, const std::string& email) {
-        json users = loadList(filename);
-
-        users.push_back({
-            {"username", username},
-            {"email", email}
-        });
-
-        saveList(users, filename);
+    [[nodiscard]] inline int getLatestIndex(const std::string& filename = "users.json") {
+        return loadList(filename).size();
     }
 
 // ######################## USER SEARCHING FUNCTIONS ######################## //
 
-    // Find user by username
-    inline json getUser(const std::string& username, const std::string& filename = "users.json") {
-        json users = loadList(filename);
 
-        for (const auto& user : users) {
-            if (user["username"] == username) {
-                return user;        // return the whole user object
-            }
-        }
-
-        return json(); // empty JSON = not found
-    }
 
     [[nodiscard]] inline bool userExists(const std::string& username, const std::string& filename = "users.json") {
         json users = loadList(filename);

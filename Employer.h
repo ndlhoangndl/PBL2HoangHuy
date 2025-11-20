@@ -17,8 +17,8 @@ private:
     vector<string> postedJobIds;
 
 public:
-    Employer(string id, string username, string password, string email, string phone)
-        : User(id, username, password, email, phone) {}
+    Employer(string id, string username, string password, string email, string phone, string fullName, bool isActive, string createdAt, string companyName = nullptr)
+        : User(id, username, password, email, phone, fullName, isActive, createdAt, companyName) {}
 
     string getRole() const override { return "employer"; }
 
