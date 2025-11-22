@@ -1,11 +1,11 @@
 #ifndef EMPLOYER_H
 #define EMPLOYER_H
 
-#include "User.h"
+#include <algorithm>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <algorithm>
+#include "User.h"
 using namespace std;
 
 class Employer : public User {
@@ -17,16 +17,21 @@ private:
     vector<string> postedJobIds;
 
 public:
-    Employer(string id, string username, string password, string email, string phone, string fullName, bool isActive, string createdAt, string companyName = nullptr)
-        : User(id, username, password, email, phone, fullName, isActive, createdAt, companyName) {}
+    Employer(string id, string username, string password, string email, string phone, string fullName,
+             string dateOfBirth, bool isActive, string createdAt, string companyName = nullptr) :
+        User(id, username, password, email, phone, fullName, dateOfBirth, isActive, createdAt, companyName) {}
+
+    Employer(const User &user) :
+        User(user.id, user.username, user.password, user.email, user.phone, user.fullName, user.dateOfBirth,
+             user.isActive, user.createdAt, user.companyName) {}
 
     string getRole() const override { return "employer"; }
 
     // Setters
-    void setCompanyName(const string& name) { companyName = name; }
-    void setCompanyAddress(const string& addr) { companyAddress = addr; }
-    void setCompanyDescription(const string& desc) { companyDescription = desc; }
-    void setIndustry(const string& ind) { industry = ind; }
+    void setCompanyName(const string &name) { companyName = name; }
+    void setCompanyAddress(const string &addr) { companyAddress = addr; }
+    void setCompanyDescription(const string &desc) { companyDescription = desc; }
+    void setIndustry(const string &ind) { industry = ind; }
 
     // Getters
     string getCompanyName() const { return companyName; }
@@ -35,25 +40,21 @@ public:
     string getIndustry() const { return industry; }
 
     // Job management
-    void addPostedJob(const string& jobId) {
-        postedJobIds.push_back(jobId);
-    }
+    void addPostedJob(const string &jobId) { postedJobIds.push_back(jobId); }
 
-    void removePostedJob(const string& jobId) {  // ✅ THÊM HÀM NÀY
+    void removePostedJob(const string &jobId) {
         auto it = find(postedJobIds.begin(), postedJobIds.end(), jobId);
-        if(it != postedJobIds.end()) {
+        if (it != postedJobIds.end()) {
             postedJobIds.erase(it);
         }
     }
 
-    vector<string> getPostedJobIds() const {
-        return postedJobIds;
-    }
+    vector<string> getPostedJobIds() const { return postedJobIds; }
 
     void displayInfo() const override {
         User::displayInfo();
         cout << "Vai tro: Nha tuyen dung\n";
-        if(!companyName.empty()) {
+        if (!companyName.empty()) {
             cout << "\n--- THONG TIN CONG TY ---\n";
             cout << "Ten cong ty: " << companyName << "\n";
             cout << "Dia chi: " << companyAddress << "\n";

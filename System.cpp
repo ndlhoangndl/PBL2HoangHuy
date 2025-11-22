@@ -9,21 +9,14 @@ using namespace std;
 
 // ========== CONSTRUCTOR ==========
 
-System::System()
-    : nextJobId(1),
-      nextAppId(1),
-      admin(Admin("0", "admin", "", "", "", "", "", "", ""))   // temporary, will be overwritten
+System::System() :
+    nextJobId(1), nextAppId(1),
+    admin(Admin("0", "admin", "", "", "", "", "", "", "", "")) // temporary, will be overwritten
 {
     initializeDefaultCategories();
 }
 
-System::System(const Admin& admin)
-    : admin(admin),
-      nextJobId(1),
-      nextAppId(1)
-{
-    initializeDefaultCategories();
-}
+System::System(const Admin &admin) : admin(admin), nextJobId(1), nextAppId(1) { initializeDefaultCategories(); }
 
 void System::initializeDefaultAdmin() { admin.setFullName("Quan Tri Vien"); }
 
@@ -37,13 +30,9 @@ void System::initializeDefaultCategories() {
 }
 
 // ========== HELPER FUNCTIONS ==========
-string System::generateJobId() {
-    return "JOB" + to_string(nextJobId++);
-}
+string System::generateJobId() { return "JOB" + to_string(nextJobId++); }
 
-string System::generateAppId() {
-    return "APP" + to_string(nextAppId++);
-}
+string System::generateAppId() { return "APP" + to_string(nextAppId++); }
 
 Job *System::findJobById(const string &jobId) {
     for (auto &job: jobs) {
@@ -75,15 +64,15 @@ Employer *System::findEmployerById(const string &id) {
 // ========================================
 // ADMIN MENU
 // ========================================
-void System::adminMenu(Admin &a) {
+void System::adminMenu(const Admin &a) {
     int choice;
     do {
         cout << "             MENU QUAN TRI VIEN                   \n";
         cout << "Xin chao, " << a.getFullName() << "!\n\n";
         cout << "1. Quan ly danh sach nguoi dung\n";
-        cout << "2. Quan ly danh muc\n";
+        cout << "2. Xoa tai khoan nguoi dung\n";
         cout << "3. Quan ly tin tuyen dung\n";
-        cout << "4. Thong ke hoat dong\n";
+        cout << "4. Xoa tin tuyen dung\n";
         cout << "0. Dang xuat\n";
         cout << "\nChon: ";
         cin >> choice;
@@ -93,13 +82,13 @@ void System::adminMenu(Admin &a) {
                 admin_ViewAllUsers();
                 break;
             case 2:
-                admin_ManageCategories();
+                admin_removeUser();
                 break;
             case 3:
                 admin_ManageJobs();
                 break;
             case 4:
-                admin_ViewStatistics();
+                admin_RemoveJob();      // TODO: GET THIS SHIT DONE
                 break;
             case 0:
                 cout << "Dang xuat...\n";
@@ -112,14 +101,58 @@ void System::adminMenu(Admin &a) {
 
 // 1.1. Quản lý danh sách người dùng
 void System::admin_ViewAllUsers() {
+
+
+    json data = PBLJson::loadList("users.json");
+
+    for (auto &user: data) {
+        if (user.value("role", "") == "jobSeeker") {
+            string companyName;
+            if (user.contains("companyName") && user["companyName"].is_string())
+                companyName = user["companyName"].get<std::string>();
+
+            jobSeekers.emplace_back(User(
+                    user.value("id", "0"),
+                    user.value("username", ""),
+                    user.value("password", ""),
+                    user.value("email", ""),
+                    user.value("phone", ""),
+                    user.value("fullName", ""),
+                    user.value("dateOfBirth", "0000-00-00"),
+                    user.value("isActive", true),
+                    user.value("createdAt", ""),
+                    companyName
+                ));
+        } else if (user.value("role", "") == "employer") {
+            string companyName;
+            if (user.contains("companyName") && user["companyName"].is_string())
+                companyName = user["companyName"].get<std::string>();
+
+            employers.emplace_back(User(
+                    user.value("id", "0"),
+                    user.value("username", ""),
+                    user.value("password", ""),
+                    user.value("email", ""),
+                    user.value("phone", ""),
+                    user.value("fullName", ""),
+                    user.value("dateOfBirth", "0000-00-00"),
+                    user.value("isActive", true),
+                    user.value("createdAt", ""),
+                    companyName
+                ));
+        }
+    }
+
+
     cout << "        DANH SACH NGUOI DUNG                      \n";
     cout << "\n--- UNG VIEN (JOBSEEKER) ---\n";
+
     if (jobSeekers.empty()) {
         cout << "Khong co ung vien nao.\n";
     } else {
         for (const auto &js: jobSeekers) {
             cout << "\nID: " << js.getId() << " | Ho ten: " << js.getUsername() << " | Email: " << js.getEmail()
-                 << " | Status: " << (js.getIsActive() ? "Active" : "Inactive") << "\n";
+                 << " | Status: " << (js.getStatus() ? "Active" : "Inactive") << "\n";
             cout << "Ho ten: " << js.getFullName() << " | Tuoi: " << js.getAge() << " | Chuyen nganh: " << js.getMajor()
                  << " | KN: " << js.getYearsOfExperience() << " nam\n";
         }
@@ -132,7 +165,7 @@ void System::admin_ViewAllUsers() {
     } else {
         for (const auto &emp: employers) {
             cout << "\nID: " << emp.getId() << " | Username: " << emp.getUsername() << " | Email: " << emp.getEmail()
-                 << " | Status: " << (emp.getIsActive() ? "Active" : "Inactive") << "\n";
+                 << " | Status: " << (emp.getStatus() ? "Active" : "Inactive") << "\n";
             cout << "Cong ty: " << emp.getCompanyName() << " | Nganh: " << emp.getIndustry()
                  << " | So tin: " << emp.getPostedJobIds().size() << "\n";
         }
@@ -165,65 +198,36 @@ void System::admin_DeleteEmployer() {
 }
 
 // 1.3. Quản lý danh mục
-void System::admin_ManageCategories() {
-    int choice;
-    do {
-        cout << "\n=== QUAN LY DANH MUC ===\n";
-        cout << "1. Xem danh sach nganh nghe\n";
-        cout << "2. Them nganh nghe\n";
-        cout << "3. Xoa nganh nghe\n";
-        cout << "4. Xem danh sach khu vuc\n";
-        cout << "5. Them khu vuc\n";
-        cout << "6. Xoa khu vuc\n";
-        cout << "0. Quay lai\n";
-        cout << "Chon: ";
-        cin >> choice;
-        cin.ignore();
+void System::admin_removeUser() {
 
-        string value;
-        switch (choice) {
-            case 1:
-                cout << "\n--- DANH SACH NGANH NGHE ---\n";
-                for (size_t i = 0; i < categories.size(); i++) {
-                    cout << i + 1 << ". " << categories[i] << "\n";
-                }
-                break;
-            case 2:
-                cout << "Nhap ten nganh nghe: ";
-                getline(cin, value);
-                categories.push_back(value);
-                cout << "✓ Them thanh cong!\n";
-                break;
-            case 3:
-                cout << "Nhap ten nganh nghe can xoa: ";
-                getline(cin, value);
-                categories.erase(remove(categories.begin(), categories.end(), value), categories.end());
-                cout << "✓ Xoa thanh cong!\n";
-                break;
-            case 4:
-                cout << "\n--- DANH SACH KHU VUC ---\n";
-                for (size_t i = 0; i < locations.size(); i++) {
-                    cout << i + 1 << ". " << locations[i] << "\n";
-                }
-                break;
-            case 5:
-                cout << "Nhap ten khu vuc: ";
-                getline(cin, value);
-                locations.push_back(value);
-                cout << "✓ Them thanh cong!\n";
-                break;
-            case 6:
-                cout << "Nhap ten khu vuc can xoa: ";
-                getline(cin, value);
-                locations.erase(remove(locations.begin(), locations.end(), value), locations.end());
-                cout << "✓ Xoa thanh cong!\n";
-                break;
-            case 0:
-                break;
-            default:
-                cout << "Lua chon khong hop le!\n";
-        }
-    } while (choice != 0);
+    std::regex emailRegex(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
+    string removeData;
+
+    cout << "\n=== XOA NGUOI DUNG ===\n";
+
+    cin.ignore();
+    cout << "\nVui long nhap username/email/so dien thoai cua nguoi dung can xoa: ";
+    getline(cin, removeData);
+
+    User target;
+
+    if (removeData.empty()) return;
+
+    if (removeData.substr(0, 3) == "+84") {
+        target = User::findPhone(removeData);
+    } else if (std::regex_match(removeData, emailRegex)) {
+        target = User::findEmail(removeData);
+    } else {
+        target = User::findUser(removeData);
+    }
+
+    if (target.username.empty()) {
+        cout << "#### Khong the tim thay nguoi dung voi thong tin " << removeData << "\n";
+        return;
+    }
+    User::removeUser(target);
+    cout << "#### Xoa thanh cong nguoi dung voi thong tin " << removeData << "\n";
+    return;
 }
 
 // 1.4. Quản lý tin tuyển dụng
@@ -296,7 +300,6 @@ void System::admin_ApproveJobs() {
 }
 
 
-
 void System::admin_EditJob() {
     cin.ignore();
     cout << "\n=== CHINH SUA TIN TUYEN DUNG ===\n";
@@ -352,7 +355,7 @@ void System::admin_DeleteJob() {
 }
 
 // 1.5. Thống kê hoạt động
-void System::admin_ViewStatistics() {
+void System::admin_RemoveJob() {
 
     cout << "            THONG KE HOAT DONG                     \n";
 
@@ -888,15 +891,14 @@ void System::jobSeekerMenu(JobSeeker &js) {
 
 
         cout << "1. Cap nhat CV truc tuyen\n";
-        cout << "2. Tai len CV file\n";
-        cout << "3. Chinh sua thong tin ca nhan\n";
-        cout << "4. Tim kiem viec lam\n";
-        cout << "5. Xem chi tiet tin tuyen dung\n";
-        cout << "6. Ung tuyen viec lam\n";
-        cout << "7. Xem trang thai ho so\n";
-        cout << "8. Xem lich su ung tuyen\n";
-        cout << "9. Xem thong bao\n";
-        cout << "10. Xem thong tin ca nhan\n";
+        cout << "2. Chinh sua thong tin ca nhan\n";
+        cout << "3. Tim kiem viec lam\n";
+        cout << "4. Xem chi tiet tin tuyen dung\n";
+        cout << "5. Ung tuyen viec lam\n";
+        cout << "6. Xem trang thai ho so\n";
+        cout << "7. Xem lich su ung tuyen\n";
+        cout << "8. Xem thong bao\n";
+        cout << "9. Xem thong tin ca nhan\n";
         cout << "0. Dang xuat\n";
         cout << "\nChon: ";
         cin >> choice;
@@ -906,30 +908,27 @@ void System::jobSeekerMenu(JobSeeker &js) {
                 jobseeker_UpdateCV(js);
                 break;
             case 2:
-                jobseeker_UploadCVFile(js);
-                break;
-            case 3:
                 jobseeker_UpdateProfile(js);
                 break;
-            case 4:
+            case 3:
                 jobseeker_SearchJobs(js);
                 break;
-            case 5:
+            case 4:
                 jobseeker_ViewJobDetail(js);
                 break;
-            case 6:
+            case 5:
                 jobseeker_ApplyJob(js);
                 break;
-            case 7:
+            case 6:
                 jobseeker_ViewApplicationStatus(js);
                 break;
-            case 8:
+            case 7:
                 jobseeker_ViewHistory(js);
                 break;
-            case 9:
+            case 8:
                 // jobseeker_ViewNotifications(js);
                 break;
-            case 10:
+            case 9:
                 js.displayInfo();
                 break;
             case 0:
@@ -943,23 +942,18 @@ void System::jobSeekerMenu(JobSeeker &js) {
 
 // 3.1. Cập nhật CV trực tuyến
 void System::jobseeker_UpdateCV(JobSeeker &js) {
-    cin.ignore();
     cout << "\n=== CAP NHAT CV TRUC TUYEN ===\n";
 
-    string fullName, major;
-    int age, yearsOfExp;
+    string major;
+    float yearsOfExp;
 
-    cout << "Ho ten: ";
-    getline(cin, fullName);
-    cout << "Tuoi: ";
-    cin >> age;
     cin.ignore();
     cout << "Chuyen nganh: ";
     getline(cin, major);
     cout << "So nam kinh nghiem: ";
     cin >> yearsOfExp;
 
-    js.updateCVOnline(fullName, age, major, yearsOfExp);
+    js.updateCVOnline(major, yearsOfExp);
 
     // Nhập kỹ năng
     cout << "\nNhap ky nang (nhap '0' de ket thuc):\n";
@@ -974,6 +968,8 @@ void System::jobseeker_UpdateCV(JobSeeker &js) {
         js.addSkill(skill);
     }
 
+    js.updateCV();
+
     cout << "\n✓ Cap nhat CV thanh cong!\n";
     cout << "\n--- CV CUA BAN ---\n";
     cout << js.getCVOnline() << "\n";
@@ -987,19 +983,6 @@ void System::jobseeker_UpdateCV(JobSeeker &js) {
         }
         cout << "\n";
     }
-}
-
-// 3.1. Tải lên CV file
-void System::jobseeker_UploadCVFile(JobSeeker &js) {
-    cin.ignore();
-    cout << "\n=== TAI LEN CV FILE ===\n";
-    cout << "Nhap duong dan file CV: ";
-    string filePath;
-    getline(cin, filePath);
-
-    js.setCVFilePath(filePath);
-    cout << "✓ Tai len CV thanh cong!\n";
-    cout << "Duong dan: " << filePath << "\n";
 }
 
 // 3.1. Chỉnh sửa thông tin cá nhân
@@ -1171,12 +1154,6 @@ void System::jobseeker_ApplyJob(JobSeeker &js) {
     cin.ignore();
     cout << "\n=== UNG TUYEN VIEC LAM ===\n";
 
-    // Kiểm tra CV
-    if (js.getAge() == 0 && js.getCVFilePath().empty()) {
-        cout << "### Ban chua co CV! Vui long cap nhat CV truoc.\n";
-        return;
-    }
-
     cout << "Nhap Job ID: ";
     string jobId;
     getline(cin, jobId);
@@ -1274,7 +1251,7 @@ void System::jobseeker_ViewHistory(JobSeeker &js) {
 
 void System::registerUser() {
     int role;
-    string id, username, password, email, phone, fullName;
+    string id, username, password, email, phone, fullName, dateOfBirth;
 
     // regular expression
     std::regex passRegex(R"((?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,})");
@@ -1301,12 +1278,12 @@ void System::registerUser() {
     cout << "Nhap username: ";
     getline(cin, username);
 
-    User u = User::getUser(username);
-    while (u.username != "") {
+    User u = User::findUser(username);
+    while (!u.username.empty()) {
         cout << "### Username da ton tai, vui long nhap lai!\n";
         cout << "Nhap username: ";
         getline(cin, username);
-        u = User::getUser(username);
+        u = User::findUser(username);
     }
 
     while (true) {
@@ -1322,9 +1299,16 @@ void System::registerUser() {
     cout << "Nhap ten day du: ";
     getline(cin, fullName);
 
+    cout << "Nhap ngay sinh ( yyyy-mm-dd ): ";
+    getline(cin, dateOfBirth);
+
     while (true) {
         cout << "Nhap email: ";
         getline(cin, email);
+        if (!User::findEmail(email).getEmail().empty()) {
+            cout << "Email da co tren he thong, vui long nhap lai!\n";
+            continue;
+        }
         if (std::regex_match(email, emailRegex))
             break;
         cout << "### Email khong hop le! Vui long thu lai.\n";
@@ -1336,7 +1320,8 @@ void System::registerUser() {
     phone = "+84" + phone;
 
     while (true) {
-        if (User::getPhone(phone).getPhone() == "") break;
+        if (User::findPhone(phone).getPhone().empty())
+            break;
         cout << "So dien thoai da co tren he thong, vui long nhap lai! +84 ";
         getline(cin, phone);
         phone = "+84" + phone;
@@ -1349,7 +1334,8 @@ void System::registerUser() {
         getline(cin, companyName);
     }
 
-    User::addUser(username, password, fullName, phone, email, role == 1 ? "jobSeeker" : "employer", companyName);
+    User::addUser(username, password, fullName, dateOfBirth, phone, email, role == 1 ? "jobSeeker" : "employer",
+                  companyName);
 
     if (role == 1) {
         cout << "\n#### Dang ky Ung vien thanh cong!\n";
@@ -1370,32 +1356,34 @@ void System::loginUser() {
     cout << "Password: ";
     getline(cin, password);
 
+    const string hashedPassword = sha256(password);
 
-    string hashedPassword = sha256(password);
+    const User user = User::findUser(username);
 
-
-    const User user = User::getUser(username);
-
-    if (user.getUsername() == "") {
+    if (user.getUsername().empty()) {
         cout << "\n### Sai username hoac password!\n";
         return;
     }
 
     // password is stored in User::password as hashedPassword from JSON
-    if (user.getPassword() != "" && user.getPassword() == hashedPassword) {
+    if (!user.getPassword().empty() && user.getPassword() == hashedPassword) {
         const string &role = user.role;
 
         if (role == "admin") {
             cout << "\n✓ Dang nhap thanh cong voi quyen Admin!\n";
             adminMenu(admin);
             return;
-        } else if (role == "jobseeker") {
+        }
+        if (role == "jobSeeker") {
             cout << "\n✓ Dang nhap thanh cong!\n";
-            // jobSeekerMenu(js);
+            JobSeeker _(user);
+            jobSeekerMenu(_);
             return;
-        } else if (role == "employer") {
+        }
+        if (role == "employer") {
             cout << "\n✓ Dang nhap thanh cong!\n";
-            // employerMenu(e);
+            Employer _(user);
+            employerMenu(_);
             return;
         }
     }

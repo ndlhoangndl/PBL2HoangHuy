@@ -5,8 +5,8 @@
 
 class Admin : public User {
 public:
-    Admin(string id, string username, string password, string email, string phone, string fullName, bool isActive, string createdAt, string companyName) :
-        User(id, username, password, email, phone, fullName, isActive, createdAt, companyName) {}
+    Admin(string id, string username, string password, string email, string phone, string fullName, string dateOfBirth, bool isActive, string createdAt, string companyName) :
+        User(id, username, password, email, phone, fullName, dateOfBirth, isActive, createdAt, companyName) {}
 
     string getRole() const override { return "admin"; }
 

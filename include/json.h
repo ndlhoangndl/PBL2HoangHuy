@@ -27,7 +27,7 @@ namespace PBLJson {
     }
 
     [[nodiscard]] inline int getLatestIndex(const std::string& filename = "users.json") {
-        return loadList(filename).size();
+        return loadList(filename).size() - 1;
     }
 
 // ######################## USER SEARCHING FUNCTIONS ######################## //

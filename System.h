@@ -13,21 +13,21 @@ class Job;
 using namespace std;
 
 class System {
-private:
+public:
     vector<JobSeeker> jobSeekers;
     vector<Employer> employers;
     Admin admin;
     vector<Job> jobs;
     vector<Application> applications;
 
-    vector<string> categories;  // Ngành nghề
-    vector<string> locations;   // Khu vực
+    vector<string> categories; // Ngành nghề
+    vector<string> locations; // Khu vực
 
     int nextJobId;
     int nextAppId;
 
     // ========== MENU FUNCTIONS ==========
-    void adminMenu(Admin &a);
+    void adminMenu(const Admin &a);
     void employerMenu(Employer &e);
     void jobSeekerMenu(JobSeeker &js);
 
@@ -40,7 +40,7 @@ private:
     void admin_DeleteEmployer();
 
     //  Quản lý danh mục
-    void admin_ManageCategories();
+    static void admin_removeUser();
 
     //  Quản lý tin tuyển dụng
     void admin_ManageJobs();
@@ -49,7 +49,7 @@ private:
     void admin_DeleteJob();
 
     // Thống kê
-    void admin_ViewStatistics();
+    void admin_RemoveJob();
 
     // ========== EMPLOYER FUNCTIONS ==========
     //  Quản lý tin tuyển dụng
@@ -69,11 +69,11 @@ private:
 
     // ========== JOBSEEKER FUNCTIONS ==========
     //  Quản lý hồ sơ
-    void jobseeker_UpdateCV(JobSeeker &js);
+    static void jobseeker_UpdateCV(JobSeeker &js);
     void jobseeker_UploadCVFile(JobSeeker &js);
     void jobseeker_UpdateProfile(JobSeeker &js);
 
-    //Tìm kiếm việc làm
+    // Tìm kiếm việc làm
     void jobseeker_SearchJobs(JobSeeker &js);
     void jobseeker_ViewJobDetail(JobSeeker &js);
 
@@ -88,15 +88,14 @@ private:
     // ========== HELPER FUNCTIONS ==========
     string generateJobId();
     string generateAppId();
-    Job* findJobById(const string &jobId);
-    JobSeeker* findJobSeekerById(const string &id);
-    Employer* findEmployerById(const string &id);
+    Job *findJobById(const string &jobId);
+    JobSeeker *findJobSeekerById(const string &id);
+    Employer *findEmployerById(const string &id);
     void initializeDefaultAdmin();
     void initializeDefaultCategories();
     // void sendNotificationToJobSeeker(const string& jobSeekerId, const string& message);
 
-public:
-    explicit System(const Admin & admin);
+    explicit System(const Admin &admin);
     System();
 
     void run();
