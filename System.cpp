@@ -1,7 +1,6 @@
 #include "System.h"
 #include <algorithm>
 #include <iostream>
-#include <map>
 #include <regex>
 #include "hash.h"
 #include "json.h"
@@ -12,22 +11,11 @@ using namespace std;
 System::System() :
     nextJobId(1), nextAppId(1),
     admin(Admin("0", "admin", "", "", "", "", "", "", "", "")) // temporary, will be overwritten
-{
-    initializeDefaultCategories();
-}
+{}
 
-System::System(const Admin &admin) : admin(admin), nextJobId(1), nextAppId(1) { initializeDefaultCategories(); }
+System::System(const Admin &admin) : admin(admin), nextJobId(1), nextAppId(1) {}
 
 void System::initializeDefaultAdmin() { admin.setFullName("Quan Tri Vien"); }
-
-void System::initializeDefaultCategories() {
-    // Ngành nghề
-    categories = {"IT",       "Marketing", "Kinh doanh", "Ke toan", "Nhan su",
-                  "Xay dung", "Y te",      "Giao duc",   "Du lich", "Thiet ke"};
-
-    // Khu vực
-    locations = {"Ha Noi", "Ho Chi Minh", "Da Nang", "Hai Phong", "Can Tho", "Binh Duong", "Dong Nai", "Hai Duong"};
-}
 
 // ========== HELPER FUNCTIONS ==========
 string System::generateJobId() { return "JOB" + to_string(nextJobId++); }
@@ -87,9 +75,9 @@ void System::adminMenu(const Admin &a) {
             case 3:
                 admin_ManageJobs();
                 break;
-            case 4:
-                admin_RemoveJob();      // TODO: GET THIS SHIT DONE
-                break;
+            // case 4:
+            //     admin_RemoveJob(); // TODO: GET THIS SHIT DONE
+            //     break;
             case 0:
                 cout << "Dang xuat...\n";
                 break;
@@ -111,35 +99,19 @@ void System::admin_ViewAllUsers() {
             if (user.contains("companyName") && user["companyName"].is_string())
                 companyName = user["companyName"].get<std::string>();
 
-            jobSeekers.emplace_back(User(
-                    user.value("id", "0"),
-                    user.value("username", ""),
-                    user.value("password", ""),
-                    user.value("email", ""),
-                    user.value("phone", ""),
-                    user.value("fullName", ""),
-                    user.value("dateOfBirth", "0000-00-00"),
-                    user.value("isActive", true),
-                    user.value("createdAt", ""),
-                    companyName
-                ));
+            jobSeekers.emplace_back(User(user.value("id", "0"), user.value("username", ""), user.value("password", ""),
+                                         user.value("email", ""), user.value("phone", ""), user.value("fullName", ""),
+                                         user.value("dateOfBirth", "0000-00-00"), user.value("isActive", true),
+                                         user.value("createdAt", ""), companyName));
         } else if (user.value("role", "") == "employer") {
             string companyName;
             if (user.contains("companyName") && user["companyName"].is_string())
                 companyName = user["companyName"].get<std::string>();
 
-            employers.emplace_back(User(
-                    user.value("id", "0"),
-                    user.value("username", ""),
-                    user.value("password", ""),
-                    user.value("email", ""),
-                    user.value("phone", ""),
-                    user.value("fullName", ""),
-                    user.value("dateOfBirth", "0000-00-00"),
-                    user.value("isActive", true),
-                    user.value("createdAt", ""),
-                    companyName
-                ));
+            employers.emplace_back(User(user.value("id", "0"), user.value("username", ""), user.value("password", ""),
+                                        user.value("email", ""), user.value("phone", ""), user.value("fullName", ""),
+                                        user.value("dateOfBirth", "0000-00-00"), user.value("isActive", true),
+                                        user.value("createdAt", ""), companyName));
         }
     }
 
@@ -211,7 +183,8 @@ void System::admin_removeUser() {
 
     User target;
 
-    if (removeData.empty()) return;
+    if (removeData.empty())
+        return;
 
     if (removeData.substr(0, 3) == "+84") {
         target = User::findPhone(removeData);
@@ -227,7 +200,6 @@ void System::admin_removeUser() {
     }
     User::removeUser(target);
     cout << "#### Xoa thanh cong nguoi dung voi thong tin " << removeData << "\n";
-    return;
 }
 
 // 1.4. Quản lý tin tuyển dụng
@@ -268,35 +240,7 @@ void System::admin_ManageJobs() {
 }
 
 void System::admin_ApproveJobs() {
-    cout << "\n=== DUYET TIN TUYEN DUNG ===\n";
 
-    bool hasPending = false;
-    for (auto &job: jobs) {
-        if (!job.getIsApproved()) {
-            hasPending = true;
-            job.display();
-
-            cout << "Duyet tin nay? (1: Duyet, 0: Bo qua): ";
-            int approve;
-            cin >> approve;
-
-            if (approve == 1) {
-                job.setApproved(true);
-                cout << "✓ Da duyet tin tuyen dung!\n";
-
-                // Thông báo cho employer
-                Employer *emp = findEmployerById(job.getEmployerId());
-                if (emp) {
-                    cout << "Thong bao da duoc gui den " << emp->getUsername() << "\n";
-                }
-            }
-            cout << "\n";
-        }
-    }
-
-    if (!hasPending) {
-        cout << "Khong co tin tuyen dung nao can duyet!\n";
-    }
 }
 
 
@@ -354,48 +298,46 @@ void System::admin_DeleteJob() {
     }
 }
 
-// 1.5. Thống kê hoạt động
-void System::admin_RemoveJob() {
-
-    cout << "            THONG KE HOAT DONG                     \n";
-
-
-    // Thống kê tổng quan
-    cout << "\n--- TONG QUAN ---\n";
-    cout << "Tong so ung vien: " << jobSeekers.size() << "\n";
-    cout << "Tong so nha tuyen dung: " << employers.size() << "\n";
-    cout << "Tong so tin tuyen dung: " << jobs.size() << "\n";
-    cout << "Tong so don ung tuyen: " << applications.size() << "\n";
-
-    // Thống kê tin tuyển dụng theo ngành nghề
-    cout << "\n--- THONG KE THEO NGANH NGHE ---\n";
-    map<string, int> categoryCount;
-    for (const auto &job: jobs) {
-        if (job.getIsApproved()) {
-            categoryCount[job.getCategory()]++;
-        }
-    }
-    for (const auto &pair: categoryCount) {
-        cout << pair.first << ": " << pair.second << " tin\n";
-    }
-
-    // Thống kê ứng tuyển
-    cout << "\n--- THONG KE UNG TUYEN ---\n";
-    int pendingApps = 0, acceptedApps = 0, rejectedApps = 0;
-    for (const auto &app: applications) {
-        if (app.getStatus() == PENDING || app.getStatus() == VIEWED || app.getStatus() == PROCESSING ||
-            app.getStatus() == INTERVIEW) {
-            pendingApps++;
-        } else if (app.getStatus() == ACCEPTED) {
-            acceptedApps++;
-        } else if (app.getStatus() == REJECTED) {
-            rejectedApps++;
-        }
-    }
-    cout << "Don dang xu ly: " << pendingApps << "\n";
-    cout << "Don trung tuyen: " << acceptedApps << "\n";
-    cout << "Don tu choi: " << rejectedApps << "\n";
-}
+// // 1.5. Thống kê hoạt động
+// void System::admin_RemoveJob() {
+//
+//     cout << "            THONG KE HOAT DONG                     \n";
+//
+//
+//     // Thống kê tổng quan
+//     cout << "\n--- TONG QUAN ---\n";
+//     cout << "Tong so ung vien: " << jobSeekers.size() << "\n";
+//     cout << "Tong so nha tuyen dung: " << employers.size() << "\n";
+//     cout << "Tong so tin tuyen dung: " << jobs.size() << "\n";
+//     cout << "Tong so don ung tuyen: " << applications.size() << "\n";
+//
+//     // Thống kê tin tuyển dụng theo ngành nghề
+//     cout << "\n--- THONG KE THEO NGANH NGHE ---\n";
+//     map<string, int> categoryCount;
+//     for (const auto &job: jobs) {
+//         categoryCount[job.getCategory()]++;
+//     }
+//     for (const auto &pair: categoryCount) {
+//         cout << pair.first << ": " << pair.second << " tin\n";
+//     }
+//
+//     // Thống kê ứng tuyển
+//     cout << "\n--- THONG KE UNG TUYEN ---\n";
+//     int pendingApps = 0, acceptedApps = 0, rejectedApps = 0;
+//     for (const auto &app: applications) {
+//         if (app.getStatus() == PENDING || app.getStatus() == VIEWED || app.getStatus() == PROCESSING ||
+//             app.getStatus() == INTERVIEW) {
+//             pendingApps++;
+//         } else if (app.getStatus() == ACCEPTED) {
+//             acceptedApps++;
+//         } else if (app.getStatus() == REJECTED) {
+//             rejectedApps++;
+//         }
+//     }
+//     cout << "Don dang xu ly: " << pendingApps << "\n";
+//     cout << "Don trung tuyen: " << acceptedApps << "\n";
+//     cout << "Don tu choi: " << rejectedApps << "\n";
+// }
 
 // ========================================
 // EMPLOYER MENU
@@ -407,7 +349,7 @@ void System::employerMenu(Employer &e) {
         cout << "            MENU NHA TUYEN DUNG                    \n";
 
         cout << "Xin chao, " << e.getUsername();
-        if (e.getCompanyName() != "") {
+        if (!e.getCompanyName().empty()) {
             cout << " (" << e.getCompanyName() << ")";
         }
         cout << "!\n\n";
@@ -470,42 +412,30 @@ void System::employer_PostJob(Employer &e) {
     cin.ignore();
     cout << "\n=== DANG TIN TUYEN DUNG ===\n";
 
-    string title, description, category, location;
+    string title, description;
     int jobType, minExp, minAge, maxAge;
     double minSalary, maxSalary;
+    vector<int> placeOfWork;
 
     cout << "Tieu de: ";
     getline(cin, title);
 
-    // Chọn ngành nghề
-    cout << "\n--- NGANH NGHE ---\n";
-    for (size_t i = 0; i < categories.size(); i++) {
-        cout << i + 1 << ". " << categories[i] << "\n";
-    }
-    cout << "Chon nganh nghe (nhap so): ";
-    int catChoice;
-    cin >> catChoice;
-    if (catChoice > 0 && catChoice <= (int) categories.size()) {
-        category = categories[catChoice - 1];
-    }
-    cin.ignore();
-
-    // Chọn địa điểm
-    cout << "\n--- DIA DIEM ---\n";
-    for (size_t i = 0; i < locations.size(); i++) {
-        cout << i + 1 << ". " << locations[i] << "\n";
-    }
-    cout << "Chon dia diem (nhap so): ";
-    int locChoice;
-    cin >> locChoice;
-    if (locChoice > 0 && locChoice <= (int) locations.size()) {
-        location = locations[locChoice - 1];
-    }
-    cin.ignore();
-
     // Loại hình công việc
     cout << "\nLoai hinh (1: Full-time, 2: Part-time): ";
     cin >> jobType;
+
+    cout << "\nDia diem lam viec (1: On-site, 2: Hybrid, 3: Remote) < co the chon nhieu hon 1 - vd: 1, 2, 3>: ";
+    string _;
+    getline(cin, _);
+
+    std::stringstream ss(_);
+    int x;
+    char comma;
+
+    while (ss >> x) {
+        placeOfWork.push_back(x);
+        if (!(ss >> comma)) break;
+    }
 
     // Mức lương
     cout << "Muc luong toi thieu: ";
@@ -531,9 +461,8 @@ void System::employer_PostJob(Employer &e) {
     string jobId = generateJobId();
     Job newJob(jobId, e.getId(), title);
     newJob.setDescription(description);
-    newJob.setCategory(category);
-    newJob.setLocation(location);
-    newJob.setJobType((jobType == 1) ? FULL_TIME : PART_TIME);
+    newJob.setPlaceOfWork(placeOfWork);
+    newJob.setJobType(jobType);
     newJob.setSalaryRange(minSalary, maxSalary);
     newJob.setMinExperience(minExp);
     newJob.setAgeRange(minAge, maxAge);
@@ -555,9 +484,8 @@ void System::employer_ViewMyJobs(Employer &e) {
         return;
     }
 
-    for (const string jobId: postedJobIds) {
-        Job *job = findJobById(jobId);
-        if (job) {
+    for (const string& jobId: postedJobIds) {
+        if (Job *job = findJobById(jobId)) {
             job->display();
         }
     }
@@ -597,12 +525,12 @@ void System::employer_EditJob(Employer &e) {
             break;
         }
         case 2: {
-            double minSal, maxSal;
+            double minSalary, maxSalary;
             cout << "Muc luong toi thieu: ";
-            cin >> minSal;
+            cin >> minSalary;
             cout << "Muc luong toi da: ";
-            cin >> maxSal;
-            job->setSalaryRange(minSal, maxSal);
+            cin >> maxSalary;
+            job->setSalaryRange(minSalary, maxSalary);
             cout << "✓ Cap nhat thanh cong!\n";
             break;
         }
@@ -859,10 +787,9 @@ void System::employer_ViewHistory(Employer &e) {
     cout << "Tong so tin da dang: " << postedJobIds.size() << "\n\n";
 
     for (const auto &jobId: postedJobIds) {
-        Job *job = findJobById(jobId);
-        if (job) {
+        if (const Job *job = findJobById(jobId)) {
             cout << "Job ID: " << jobId << " | " << job->getTitle() << "\n";
-            cout << "Trang thai: " << (job->getIsApproved() ? "Da duyet" : "Cho duyet") << " | " << job->getStatus()
+            cout << "Trang thai: " << (job->getStatus() ? "Active" : "Closed")
                  << "\n";
             cout << "Ngay dang: " << job->getPostedDate() << "\n";
 
@@ -1026,97 +953,116 @@ void System::jobseeker_UpdateProfile(JobSeeker &js) {
 void System::jobseeker_SearchJobs(JobSeeker &js) {
     cout << "\n=== TIM KIEM VIEC LAM ===\n";
     cout << "1. Xem tat ca cong viec\n";
-    cout << "2. Tim theo nganh nghe\n";
-    cout << "3. Tim theo dia diem\n";
-    cout << "4. Tim theo muc luong\n";
-    cout << "5. Loc theo yeu cau ca nhan\n";
+    // cout << "2. Tim theo nganh nghe\n";
+    // cout << "3. Tim theo dia diem\n";
+    // cout << "4. Tim theo muc luong\n";
+    // cout << "5. Loc theo yeu cau ca nhan\n";
     cout << "Chon: ";
     int choice;
     cin >> choice;
     cin.ignore();
 
+    vector<Job> vJobs = Job::getAllActiveJob();
+
     switch (choice) {
         case 1: {
+            int maxJobsPerPage = 3;
             cout << "\n--- TAT CA CONG VIEC ---\n";
-            for (const auto &job: jobs) {
-                if (job.getIsApproved() && job.getStatus() == "active") {
-                    job.display();
+            if (vJobs.size() < 3) {
+                for (auto & j : vJobs) {
+                    j.display();
                 }
+                break;
+            }
+            int p = 1;
+            while (p > 0) {
+                for (int i = 1; i < maxJobsPerPage; i++) {
+                    if (i*p >= vJobs.size()) break;
+                    cout << i*p << ".\n";
+                    vJobs.at(i * p).display();
+                }
+
+                cout << " ---- Trang " << p << "/" << ceil(vJobs.size()/maxJobsPerPage) << " ---\n";
+                while (p <= ceil(vJobs.size()/maxJobsPerPage)) {
+                    cout << " ---- ---- Vui long nhap so trang can den: ";
+                    cin >> p;
+                    if (p > ceil(vJobs.size()/maxJobsPerPage)) cout << "SO TRANG KHONG HOP LE!\n";
+                };
             }
             break;
         }
-        case 2: {
-            cout << "\n--- CHON NGANH NGHE ---\n";
-            for (size_t i = 0; i < categories.size(); i++) {
-                cout << i + 1 << ". " << categories[i] << "\n";
-            }
-            cout << "Chon: ";
-            int catChoice;
-            cin >> catChoice;
-
-            if (catChoice > 0 && catChoice <= (int) categories.size()) {
-                string category = categories[catChoice - 1];
-                cout << "\n--- KET QUA TIM KIEM ---\n";
-                for (const auto &job: jobs) {
-                    if (job.getIsApproved() && job.getStatus() == "active" && job.getCategory() == category) {
-                        job.display();
-                    }
-                }
-            }
-            break;
-        }
-        case 3: {
-            cout << "\n--- CHON DIA DIEM ---\n";
-            for (size_t i = 0; i < locations.size(); i++) {
-                cout << i + 1 << ". " << locations[i] << "\n";
-            }
-            cout << "Chon: ";
-            int locChoice;
-            cin >> locChoice;
-
-            if (locChoice > 0 && locChoice <= (int) locations.size()) {
-                string location = locations[locChoice - 1];
-                cout << "\n--- KET QUA TIM KIEM ---\n";
-                for (const auto &job: jobs) {
-                    if (job.getIsApproved() && job.getStatus() == "active" && job.getLocation() == location) {
-                        job.display();
-                    }
-                }
-            }
-            break;
-        }
-        case 4: {
-            double minSalary;
-            cout << "Nhap muc luong toi thieu: ";
-            cin >> minSalary;
-
-            cout << "\n--- KET QUA TIM KIEM ---\n";
-            for (const auto &job: jobs) {
-                if (job.getIsApproved() && job.getStatus() == "active" && job.getMaxSalary() >= minSalary) {
-                    job.display();
-                }
-            }
-            break;
-        }
-        case 5: {
-            // Lọc theo kinh nghiệm, mức lương
-            int myExp = js.getYearsOfExperience();
-
-            cout << "\n--- LOC THEO YEU CAU CA NHAN ---\n";
-            cout << "Kinh nghiem cua ban: " << myExp << " nam\n";
-            cout << "Nhap muc luong mong muon: ";
-            double expectedSalary;
-            cin >> expectedSalary;
-
-            cout << "\n--- KET QUA LOC ---\n";
-            for (const auto &job: jobs) {
-                if (job.getIsApproved() && job.getStatus() == "active" && job.getMinExperience() <= myExp &&
-                    job.getMaxSalary() >= expectedSalary) {
-                    job.display();
-                }
-            }
-            break;
-        }
+        // case 2: {
+        //     cout << "\n--- CHON NGANH NGHE ---\n";
+        //     for (size_t i = 0; i < categories.size(); i++) {
+        //         cout << i + 1 << ". " << categories[i] << "\n";
+        //     }
+        //     cout << "Chon: ";
+        //     int catChoice;
+        //     cin >> catChoice;
+        //
+        //     if (catChoice > 0 && catChoice <= (int) categories.size()) {
+        //         string category = categories[catChoice - 1];
+        //         cout << "\n--- KET QUA TIM KIEM ---\n";
+        //         for (const auto &job: jobs) {
+        //             if (job.getIsApproved() && job.getStatus() == "active" && job.getCategory() == category) {
+        //                 job.display();
+        //             }
+        //         }
+        //     }
+        //     break;
+        // }
+        // case 3: {
+        //     cout << "\n--- CHON DIA DIEM ---\n";
+        //     for (size_t i = 0; i < locations.size(); i++) {
+        //         cout << i + 1 << ". " << locations[i] << "\n";
+        //     }
+        //     cout << "Chon: ";
+        //     int locChoice;
+        //     cin >> locChoice;
+        //
+        //     if (locChoice > 0 && locChoice <= (int) locations.size()) {
+        //         string location = locations[locChoice - 1];
+        //         cout << "\n--- KET QUA TIM KIEM ---\n";
+        //         for (const auto &job: jobs) {
+        //             if (job.getIsApproved() && job.getStatus() == "active" && job.getLocation() == location) {
+        //                 job.display();
+        //             }
+        //         }
+        //     }
+        //     break;
+        // }
+        // case 4: {
+        //     double minSalary;
+        //     cout << "Nhap muc luong toi thieu: ";
+        //     cin >> minSalary;
+        //
+        //     cout << "\n--- KET QUA TIM KIEM ---\n";
+        //     for (const auto &job: jobs) {
+        //         if (job.getIsApproved() && job.getStatus() == "active" && job.getMaxSalary() >= minSalary) {
+        //             job.display();
+        //         }
+        //     }
+        //     break;
+        // }
+        // case 5: {
+        //     // Lọc theo kinh nghiệm, mức lương
+        //     int myExp = js.getYearsOfExperience();
+        //
+        //     cout << "\n--- LOC THEO YEU CAU CA NHAN ---\n";
+        //     cout << "Kinh nghiem cua ban: " << myExp << " nam\n";
+        //     cout << "Nhap muc luong mong muon: ";
+        //     double expectedSalary;
+        //     cin >> expectedSalary;
+        //
+        //     cout << "\n--- KET QUA LOC ---\n";
+        //     for (const auto &job: jobs) {
+        //         if (job.getIsApproved() && job.getStatus() == "active" && job.getMinExperience() <= myExp &&
+        //             job.getMaxSalary() >= expectedSalary) {
+        //             job.display();
+        //         }
+        //     }
+        //     break;
+        // }
         default:
             cout << "Lua chon khong hop le!\n";
     }
@@ -1131,7 +1077,7 @@ void System::jobseeker_ViewJobDetail(JobSeeker &js) {
     getline(cin, jobId);
 
     Job *job = findJobById(jobId);
-    if (!job || !job->getIsApproved() || job->getStatus() != "active") {
+    if (!job || job->getStatus()) {
         cout << "### Khong tim thay tin tuyen dung!\n";
         return;
     }
@@ -1159,7 +1105,7 @@ void System::jobseeker_ApplyJob(JobSeeker &js) {
     getline(cin, jobId);
 
     Job *job = findJobById(jobId);
-    if (!job || !job->getIsApproved() || job->getStatus() != "active") {
+    if (!job || job->getStatus()) {
         cout << "### Khong tim thay tin tuyen dung hoac tin da dong!\n";
         return;
     }
@@ -1254,8 +1200,8 @@ void System::registerUser() {
     string id, username, password, email, phone, fullName, dateOfBirth;
 
     // regular expression
-    std::regex passRegex(R"((?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,})");
-    std::regex emailRegex(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
+    const std::regex passRegex(R"((?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,})");
+    const std::regex emailRegex(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
 
     cin.ignore();
     cout << "             DANG KY TAI KHOAN                   \n";

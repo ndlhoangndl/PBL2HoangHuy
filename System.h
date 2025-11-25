@@ -20,9 +20,6 @@ public:
     vector<Job> jobs;
     vector<Application> applications;
 
-    vector<string> categories; // Ngành nghề
-    vector<string> locations; // Khu vực
-
     int nextJobId;
     int nextAppId;
 
@@ -64,17 +61,17 @@ public:
     void employer_SelectCandidate(Employer &e);
 
     //  Quản lý tài khoản
-    void employer_UpdateProfile(Employer &e);
+    static void employer_UpdateProfile(Employer &e);
     void employer_ViewHistory(Employer &e);
 
     // ========== JOBSEEKER FUNCTIONS ==========
     //  Quản lý hồ sơ
     static void jobseeker_UpdateCV(JobSeeker &js);
     void jobseeker_UploadCVFile(JobSeeker &js);
-    void jobseeker_UpdateProfile(JobSeeker &js);
+    static void jobseeker_UpdateProfile(JobSeeker &js);
 
     // Tìm kiếm việc làm
-    void jobseeker_SearchJobs(JobSeeker &js);
+    static void jobseeker_SearchJobs(JobSeeker &js);
     void jobseeker_ViewJobDetail(JobSeeker &js);
 
     // Ứng tuyển
@@ -92,14 +89,13 @@ public:
     JobSeeker *findJobSeekerById(const string &id);
     Employer *findEmployerById(const string &id);
     void initializeDefaultAdmin();
-    void initializeDefaultCategories();
     // void sendNotificationToJobSeeker(const string& jobSeekerId, const string& message);
 
     explicit System(const Admin &admin);
     System();
 
     void run();
-    void registerUser();
+    static void registerUser();
     void loginUser();
 };
 

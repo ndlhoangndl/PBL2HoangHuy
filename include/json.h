@@ -2,7 +2,6 @@
 
 #include <json.hpp>
 #include <fstream>
-#include <../User.h>
 
 #ifndef JSON_H
 #define JSON_H

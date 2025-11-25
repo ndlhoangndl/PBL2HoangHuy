@@ -158,8 +158,8 @@ public:
         json data = PBLJson::loadList(filename);
 
         for (auto it = data.begin(); it != data.end(); ++it) {
-            if ((*it).value("id", "") == user.id) {
-                data.erase(it); // ✅ correct!
+            if (it->value("id", "") == user.id) {
+                data.erase(it);
                 break;
             }
         }
