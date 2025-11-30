@@ -40,10 +40,10 @@ public:
     static void admin_removeUser();
 
     //  Quản lý tin tuyển dụng
-    void admin_ManageJobs();
+    static void admin_ManageJobs() ;
     static void admin_FindJobs() ;
     void admin_EditJob();
-    void admin_removeJob();
+    static void admin_removeJob();
 
     // Thống kê
     void admin_RemoveJob();

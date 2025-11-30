@@ -130,6 +130,17 @@ public:
         return result;
     }
 
+    static vector<Job> getAllJob(const string &filename = "jobs.json") {
+        vector<Job> result;
+        json data = PBLJson::loadList(filename);
+
+        for (auto &j: data) {
+            auto _ = Job(j);
+            result.emplace_back(_);
+        }
+        return result;
+    }
+
     static Job getJobById(const string &id, const string &filename = "jobs.json") {
         json data = PBLJson::loadList(filename);
 
@@ -177,7 +188,7 @@ public:
     }
 
     static vector<Job> getJobByEmployerEmail(const string &employerEmail, const string &filenameJobs = "jobs.json",
-                                                   const string &filenameUsers = "users.json") {
+                                             const string &filenameUsers = "users.json") {
         vector<Job> result;
         json jobsData = PBLJson::loadList(filenameJobs);
         json usersData = PBLJson::loadList(filenameUsers);
@@ -197,6 +208,18 @@ public:
         return result;
     }
 
+    void remove(const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+
+        for (auto it = data.begin(); it != data.end(); ++it) {
+            if (it->value("id", "") == id) {
+                data.erase(it);
+                break;
+            }
+        }
+
+        PBLJson::saveList(data, filename);
+    }
 };
 
 #endif

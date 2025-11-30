@@ -193,12 +193,36 @@ void System::admin_ManageJobs() {
             case 2:
                 admin_removeJob();
                 break;
-            case 3:
+            case 3: {
                 cout << "\n--- TAT CA TIN TUYEN DUNG ---\n";
-                for (const auto &job: jobs) {
-                    job.display();
+                json data = PBLJson::loadList("jobs.json");
+                vector<Job> vJobs = Job::getAllJob(data);
+                if (vJobs.size() < 3) {
+                    for (auto &j: vJobs) {
+                        j.display();
+                    }
+                    break;
                 }
-                break;
+                int p = 1;
+                while (p > 0) {
+                    const int maxJobsPerPage = 3;
+                    for (int i = 1; i < maxJobsPerPage; i++) {
+                        if (i * p >= vJobs.size())
+                            break;
+                        cout << i * p << ".\n";
+                        vJobs.at(i * p).display();
+                    }
+
+                    cout << " ---- Trang " << p << "/" << ceil(vJobs.size() / maxJobsPerPage) << " ---\n";
+                    while (p <= ceil(vJobs.size() / maxJobsPerPage)) {
+                        cout << " ---- ---- Vui long nhap so trang can den: ";
+                        cin >> p;
+                        if (p > ceil(vJobs.size() / maxJobsPerPage))
+                            cout << "SO TRANG KHONG HOP LE!\n";
+                    };
+                }
+                [[fallthrough]];
+            }
             case 0:
                 break;
             default:
@@ -290,21 +314,85 @@ void System::admin_FindJobs() {
 }
 
 void System::admin_removeJob() {
+    int choice;
+    do {
+        cout << "\n=== XOA TIN TUYEN DUNG ===\n";
+        cout << "1. Xoa theo id\n";
+        cout << "2. Xoa toan bo theo nguoi dang\n";
+        cout << "3. Xoa toan bo theo ten cong ty\n";
+        cout << "0. Quay lai\n";
+        cout << "Chon: ";
+        cin >> choice;
+        string removeData;
+        std::regex emailRegex(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
+        User target;
+        vector<Job> result;
 
-    cin.ignore();
-    cout << "\n=== XOA TIN TUYEN DUNG ===\n";
-    cout << "Nhap Job ID can xoa: ";
-    string jobId;
-    getline(cin, jobId);
 
-    auto it = remove_if(jobs.begin(), jobs.end(), [&](const Job &j) { return j.getJobId() == jobId; });
+        switch (choice) {
+            case 1:
 
-    if (it != jobs.end()) {
-        jobs.erase(it, jobs.end());
-        cout << "✓ Xoa tin tuyen dung thanh cong!\n";
-    } else {
-        cout << "### Khong tim thay Job ID!\n";
-    }
+                cin.ignore();
+                cout << "\n ---- Nhap id tin tuyen dung: ";
+                getline(cin, removeData);
+
+                Job::getJobById(removeData).remove();
+                break;
+
+            case 2:
+
+                cin.ignore();
+                cout << "\n ---- Nhap username/email/so dien thoai cua nguoi dang: ";
+                getline(cin, removeData);
+
+                if (removeData.empty())
+                    break;
+
+                if (removeData.substr(0, 3) == "+84") {
+                    target = User::findPhone(removeData);
+                } else if (std::regex_match(removeData, emailRegex)) {
+                    target = User::findEmail(removeData);
+                } else {
+                    target = User::findUser(removeData);
+                }
+
+                if (target.username.empty()) {
+                    cout << "#### Khong the tim thay nguoi dung voi thong tin " << removeData << "\n";
+                    break;
+                }
+
+                if (target.getRole() != "employer") {
+                    cout << "#### Nguoi dung khong phai nha tuyen dung.\n";
+                    break;
+                }
+
+                result = Job::getJobByEmployerId(target.getId());
+
+                for (auto &j: result) {
+                    j.remove();
+                }
+                break;
+
+            case 3:
+
+                cin.ignore();
+                cout << "\n ---- Nhap ten cong ty tuyen dung: ";
+                getline(cin, removeData);
+
+                result = Job::getJobByEmployerCompanyName(removeData);
+
+                for (auto &j: result) {
+                    j.remove();
+                }
+
+                break;
+
+            case 0:
+                break;
+            default:
+                cout << "Lua chon khong hop le!\n";
+        }
+    } while (choice != 0);
 }
 
 // ========================================
@@ -664,8 +752,8 @@ void System::employer_SelectCandidate(Employer &e) {
     for (auto &app: applications) {
         if (app.getApplicationId() == appId) {
             // Check nếu job thuộc về employer này
-            auto postedJobIds = e.getPostedJobIds();
-            if (find(postedJobIds.begin(), postedJobIds.end(), app.getJobId()) == postedJobIds.end()) {
+            if (auto postedJobIds = e.getPostedJobIds();
+                find(postedJobIds.begin(), postedJobIds.end(), app.getJobId()) == postedJobIds.end()) {
                 cout << "### Ban khong co quyen thao tac voi don nay!\n";
                 return;
             }
@@ -934,7 +1022,6 @@ void System::jobseeker_SearchJobs(JobSeeker &js) {
 
     switch (choice) {
         case 1: {
-            int maxJobsPerPage = 3;
             cout << "\n--- TAT CA CONG VIEC ---\n";
             if (vJobs.size() < 3) {
                 for (auto &j: vJobs) {
@@ -944,6 +1031,7 @@ void System::jobseeker_SearchJobs(JobSeeker &js) {
             }
             int p = 1;
             while (p > 0) {
+                const int maxJobsPerPage = 3;
                 for (int i = 1; i < maxJobsPerPage; i++) {
                     if (i * p >= vJobs.size())
                         break;
