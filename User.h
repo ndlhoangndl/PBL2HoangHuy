@@ -42,7 +42,7 @@ public:
 
     virtual ~User() = default; // Virtual destructor
 
-    [[nodiscard]] virtual string getRole() const { return "user"; }
+    [[nodiscard]] virtual string getRole() const { return role; }
 
     // Getters
     [[nodiscard]] string getId() const { return id; }

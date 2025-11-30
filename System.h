@@ -20,7 +20,7 @@ public:
     vector<Job> jobs;
     vector<Application> applications;
 
-    int nextJobId;
+    int latestJobId;
     int nextAppId;
 
     // ========== MENU FUNCTIONS ==========
@@ -41,9 +41,9 @@ public:
 
     //  Quản lý tin tuyển dụng
     void admin_ManageJobs();
-    void admin_ApproveJobs();
+    static void admin_FindJobs() ;
     void admin_EditJob();
-    void admin_DeleteJob();
+    void admin_removeJob();
 
     // Thống kê
     void admin_RemoveJob();

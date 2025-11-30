@@ -84,6 +84,7 @@ public:
     [[nodiscard]] int getMaxAge() const { return maxAge; }
     [[nodiscard]] bool getStatus() const { return status; }
     [[nodiscard]] string getPostedDate() const { return postedDate; }
+    [[nodiscard]] static int getLatestJobId() { return PBLJson::getLatestIndex("jobs.json"); }
 
     // Setters
     void setTitle(const string &t) { title = t; }
@@ -137,6 +138,7 @@ public:
                 return Job(j);
             }
         }
+
         return {};
     }
 
@@ -149,8 +151,52 @@ public:
                 result.emplace_back(_);
             }
         }
+
         return result;
     }
+
+    static vector<Job> getJobByEmployerCompanyName(const string &companyName, const string &filenameJobs = "jobs.json",
+                                                   const string &filenameUsers = "users.json") {
+        vector<Job> result;
+        json jobsData = PBLJson::loadList(filenameJobs);
+        json usersData = PBLJson::loadList(filenameUsers);
+
+        for (auto &u: usersData) {
+            if (u.value("role", "") == "employer" && !u.value("companyName", "").empty() &&
+                u.value("companyName", "") == companyName) {
+                for (auto &j: jobsData) {
+                    if (j.value("employerId", "") == u.value("employerId", "")) {
+                        auto _ = Job(j);
+                        result.emplace_back(_);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    static vector<Job> getJobByEmployerEmail(const string &employerEmail, const string &filenameJobs = "jobs.json",
+                                                   const string &filenameUsers = "users.json") {
+        vector<Job> result;
+        json jobsData = PBLJson::loadList(filenameJobs);
+        json usersData = PBLJson::loadList(filenameUsers);
+
+        for (auto &u: usersData) {
+            if (u.value("role", "") == "employer" && !u.value("email", "").empty() &&
+                u.value("email", "") == employerEmail) {
+                for (auto &j: jobsData) {
+                    if (j.value("employerId", "") == u.value("employerId", "")) {
+                        auto _ = Job(j);
+                        result.emplace_back(_);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
 };
 
 #endif
