@@ -37,17 +37,20 @@ private:
     int minExperience; // Số năm kinh nghiệm tối thiểu
     int minAge;
     int maxAge;
+    vector<string> applicants;
 
     // 1.4. Quản lý
     bool status; // "active", "closed"
     string postedDate;
 
 public:
-    Job() : jobType(), minSalary(0), maxSalary(0), minExperience(0), minAge(18), maxAge(100), status(true) {}
+    Job() :
+        jobType(), minSalary(0), maxSalary(0), minExperience(0), minAge(18), maxAge(100), applicants({}), status(true) {
+    }
 
     Job(string Id, string employerId, string title) :
         id(Id), employerId(employerId), title(title), jobType(1), placeOfWork(1), minSalary(), maxSalary(),
-        minExperience(0), minAge(18), maxAge(100), status(true) {
+        minExperience(0), minAge(18), maxAge(100), applicants({}), status(true) {
 
         const std::time_t now = std::time(nullptr);
         const std::tm *gmt = std::gmtime(&now); // UTC time
@@ -60,9 +63,10 @@ public:
     explicit Job(const json &_) :
         id(_.value("id", "")), employerId(_.value("employerId", "")), title(_.value("title", "")),
         description(_.value("description", "")), jobType(_.value("jobType", 1)),
-        placeOfWork(_.value("placeOfWork", vector{1})), minSalary(_.value("minSalary", 0)),
+        placeOfWork(_.value("placeOfWork", vector<int>{})), minSalary(_.value("minSalary", 0)),
         maxSalary(_.value("maxSalary", 0)), minExperience(_.value("minExperience", 0)), minAge(_.value("minAge", 0)),
-        maxAge(_.value("maxAge", 0)), status(_.value("status", true)), postedDate(_.value("postedDate", "")) {}
+        maxAge(_.value("maxAge", 0)), applicants(_.value("applicants", vector<string>{})),
+        status(_.value("status", true)), postedDate(_.value("postedDate", "")) {}
 
     // Getters
     [[nodiscard]] string getJobId() const { return id; }
@@ -70,11 +74,14 @@ public:
     [[nodiscard]] string getTitle() const { return title; }
     [[nodiscard]] string getDescription() const { return description; }
     [[nodiscard]] string getJobType() const { return jobTypeInterface[jobType]; }
+    [[nodiscard]] int getJobTypeId() const { return jobType; }
     [[nodiscard]] vector<string> getPlaceOfWork() const {
         vector<string> result;
         for (auto &i: placeOfWork)
             result.push_back(placeOfWorkInterface[i]);
         return result;
+    }[[nodiscard]] vector<int> getPlaceOfWorkId() const {
+        return placeOfWork;
     }
     [[nodiscard]] double getMinSalary() const { return minSalary; }
     [[nodiscard]] double getMaxSalary() const { return maxSalary; }
@@ -82,6 +89,7 @@ public:
     [[nodiscard]] int getMinExperience() const { return minExperience; }
     [[nodiscard]] int getMinAge() const { return minAge; }
     [[nodiscard]] int getMaxAge() const { return maxAge; }
+    [[nodiscard]] vector<string> getApplicants() const { return applicants; }
     [[nodiscard]] bool getStatus() const { return status; }
     [[nodiscard]] string getPostedDate() const { return postedDate; }
     [[nodiscard]] static int getLatestJobId() { return PBLJson::getLatestIndex("jobs.json"); }
@@ -102,6 +110,7 @@ public:
     }
     void setStatus(const string &_status) { status = _status == "Active"; }
     void setStatus(const bool &_status) { status = _status; }
+    void setApplicants(const vector<string> &_applicants = {}) { applicants = _applicants; }
 
     [[nodiscard]] string getJobTypeString() const { return jobTypeInterface[jobType]; }
 
@@ -112,6 +121,7 @@ public:
         cout << "Muc luong: " << std::fixed << std::setprecision(2) << minSalary << " - " << maxSalary << " VND\n";
         cout << "Kinh nghiem: " << minExperience << "+ nam\n";
         cout << "Do tuoi: " << minAge << " - " << maxAge << "\n";
+        cout << "So nguoi ung tuyen: " << applicants.size() << "\n";
         cout << "Mo ta: " << description << "\n";
         cout << "Ngay dang: " << postedDate << "\n";
         cout << "========================================\n";
@@ -153,11 +163,11 @@ public:
         return {};
     }
 
-    static vector<Job> getJobByEmployerId(const string &id, const string &filename = "jobs.json") {
+    static vector<Job> getJobsByEmployerId(const string &id, const string &filename = "jobs.json") {
         vector<Job> result;
         json data = PBLJson::loadList(filename);
         for (auto &j: data) {
-            if (!j.value("employerId", "").empty() && j.value("EmployerId", "") == id) {
+            if (!j.value("employerId", "").empty() && j.value("employerId", "") == id) {
                 auto _ = Job(j);
                 result.emplace_back(_);
             }
@@ -208,6 +218,38 @@ public:
         return result;
     }
 
+    static void editJob(const Job &editedJob, const string &filename = "jobs.json") {
+        json data = PBLJson::loadList(filename);
+        for (auto &j: data) {
+            if (!j.value("id", "").empty() && j.value("id", "") == editedJob.getJobId()) {
+                j.update({{"title", editedJob.getTitle()},
+                          {"description", editedJob.getDescription()},
+                          {"jobType", editedJob.getJobTypeId()},
+                          {"placeOfWork", editedJob.getPlaceOfWorkId()},
+                          {"minSalary", editedJob.getMinSalary()},
+                          {"maxSalary", editedJob.getMaxSalary()},
+                          {"minExperience", editedJob.getMinExperience()},
+                          {"minAge", editedJob.getMinAge()},
+                          {"maxAge", editedJob.getMaxAge()},
+                          {"status", editedJob.getStatus()}});
+                PBLJson::saveList(data, filename);
+                return;
+            }
+        }
+    }
+
+    void addApplicant(const string &applicantId, const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+        for (auto &j: data) {
+            if (!j.value("id", "").empty() && j.value("id", "") == id) {
+                vector<string> applicantIds = j.value("applicants", vector<string>{});
+                applicantIds.push_back(applicantId);
+                j.update({"applicants", applicantIds});
+                return;
+            }
+        }
+    }
+
     void remove(const string &filename = "jobs.json") const {
         json data = PBLJson::loadList(filename);
 
@@ -217,6 +259,27 @@ public:
                 break;
             }
         }
+
+        PBLJson::saveList(data, filename);
+    }
+
+    void postJob(const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+
+        data.push_back({{"id", id},
+                        {"employerId", employerId},
+                        {"title", title},
+                        {"description", description},
+                        {"jobType", jobType},
+                        {"placeOfWork", placeOfWork},
+                        {"minSalary", minSalary},
+                        {"maxSalary", maxSalary},
+                        {"minExperience", minExperience},
+                        {"minAge", minAge},
+                        {"maxAge", maxAge},
+                        {"applicants", applicants},
+                        {"status", status},
+                        {"postedDate", postedDate}});
 
         PBLJson::saveList(data, filename);
     }

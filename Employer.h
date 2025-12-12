@@ -19,11 +19,13 @@ private:
 public:
     Employer(string id, string username, string password, string email, string phone, string fullName,
              string dateOfBirth, bool isActive, string createdAt, string companyName = nullptr) :
-        User(id, username, password, email, phone, fullName, dateOfBirth, isActive, createdAt, companyName) {}
+        User(id, username, password, email, phone, fullName, dateOfBirth, isActive, createdAt, companyName),
+        companyName(companyName), postedJobIds(vector<string>{}) {}
 
     Employer(const User &user) :
         User(user.id, user.username, user.password, user.email, user.phone, user.fullName, user.dateOfBirth,
-             user.isActive, user.createdAt, user.companyName) {}
+             user.isActive, user.createdAt, user.companyName),
+        companyName(user.companyName), postedJobIds(vector<string>{}) {}
 
     string getRole() const override { return "employer"; }
 
@@ -49,7 +51,17 @@ public:
         }
     }
 
-    vector<string> getPostedJobIds() const { return postedJobIds; }
+    [[nodiscard]] vector<string> getPostedJobIds(const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+        vector<string> _postedJobIds;
+
+        for (auto &j: data) {
+            if (!j.value("employerId", "").empty() && j.value("employerId", "") == id) {
+                _postedJobIds.push_back(j.value("id", ""));
+            }
+        }
+        return _postedJobIds;
+    }
 
     void displayInfo() const override {
         User::displayInfo();
@@ -57,11 +69,21 @@ public:
         if (!companyName.empty()) {
             cout << "\n--- THONG TIN CONG TY ---\n";
             cout << "Ten cong ty: " << companyName << "\n";
-            cout << "Dia chi: " << companyAddress << "\n";
-            cout << "Nganh nghe: " << industry << "\n";
-            cout << "Mo ta: " << companyDescription << "\n";
-            cout << "So tin da dang: " << postedJobIds.size() << "\n";
+            // cout << "Dia chi: " << companyAddress << "\n";
+            // cout << "Nganh nghe: " << industry << "\n";
+            // cout << "Mo ta: " << companyDescription << "\n";
+            cout << "So tin da dang: " << getPostedJobIds().size() << "\n";
         }
+    }
+
+    void updateProfile(const string &filename = "users.json") {
+        json data = PBLJson::loadList(filename);
+        for (auto &u: data) {
+            if (!u.value("id", "").empty() && u.value("id", "") == id) {
+                u.update({{"companyName", companyName}, {"email", email}, {"phone", phone}});
+            }
+        }
+        PBLJson::saveList(data, "users.json");
     }
 };
 

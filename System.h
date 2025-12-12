@@ -58,7 +58,7 @@ public:
     //  Quản lý ứng viên
     void employer_ViewApplications(Employer &e);
     void employer_FilterApplications(Employer &e);
-    void employer_SelectCandidate(Employer &e);
+    void employer_CloseJob(Employer &e);
 
     //  Quản lý tài khoản
     static void employer_UpdateProfile(Employer &e);
@@ -85,7 +85,6 @@ public:
     // ========== HELPER FUNCTIONS ==========
     string generateJobId();
     string generateAppId();
-    Job *findJobById(const string &jobId);
     JobSeeker *findJobSeekerById(const string &id);
     Employer *findEmployerById(const string &id);
     void initializeDefaultAdmin();

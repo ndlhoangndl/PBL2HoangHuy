@@ -18,18 +18,9 @@ System::System(const Admin &admin) : admin(admin), latestJobId(Job::getLatestJob
 void System::initializeDefaultAdmin() { admin.setFullName("Quan Tri Vien"); }
 
 // ========== HELPER FUNCTIONS ==========
-string System::generateJobId() { return to_string(latestJobId++); }
+string System::generateJobId() { return to_string(Job::getLatestJobId()+1);}
 
 string System::generateAppId() { return "APP" + to_string(nextAppId++); }
-
-Job *System::findJobById(const string &jobId) {
-    for (auto &job: jobs) {
-        if (job.getJobId() == jobId) {
-            return &job;
-        }
-    }
-    return nullptr;
-}
 
 JobSeeker *System::findJobSeekerById(const string &id) {
     for (auto &js: jobSeekers) {
@@ -284,7 +275,7 @@ void System::admin_FindJobs() {
                     break;
                 }
 
-                result = Job::getJobByEmployerId(target.getId());
+                result = Job::getJobsByEmployerId(target.getId());
 
                 for (auto &j: result) {
                     j.display();
@@ -366,7 +357,7 @@ void System::admin_removeJob() {
                     break;
                 }
 
-                result = Job::getJobByEmployerId(target.getId());
+                result = Job::getJobsByEmployerId(target.getId());
 
                 for (auto &j: result) {
                     j.remove();
@@ -415,10 +406,10 @@ void System::employerMenu(Employer &e) {
         cout << "4. Xoa tin tuyen dung\n";
         cout << "5. Xem danh sach ung vien ung tuyen\n";
         cout << "6. Loc ho so ung vien\n";
-        cout << "7. Chon ung vien trung tuyen\n";
+        cout << "7. Dong tin tuyen dung\n";
         cout << "8. Cap nhat thong tin cong ty\n";
-        cout << "9. Xem lich su tin da dang\n";
-        cout << "10. Xem thong tin ca nhan\n";
+        // cout << "9. Xem lich su tin da dang\n";
+        cout << "9. Xem thong tin ca nhan\n";
         cout << "0. Dang xuat\n";
         cout << "\nChon: ";
         cin >> choice;
@@ -443,15 +434,15 @@ void System::employerMenu(Employer &e) {
                 employer_FilterApplications(e);
                 break;
             case 7:
-                employer_SelectCandidate(e);
+                employer_CloseJob(e);
                 break;
             case 8:
                 employer_UpdateProfile(e);
                 break;
+            // case 9:
+            //     employer_ViewHistory(e);
+            //     break;
             case 9:
-                employer_ViewHistory(e);
-                break;
-            case 10:
                 e.displayInfo();
                 break;
             case 0:
@@ -476,15 +467,16 @@ void System::employer_PostJob(Employer &e) {
     cout << "Tieu de: ";
     getline(cin, title);
 
-    // Loại hình công việc
     cout << "\nLoai hinh (1: Full-time, 2: Part-time): ";
     cin >> jobType;
+
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     cout << "\nDia diem lam viec (1: On-site, 2: Hybrid, 3: Remote) < co the chon nhieu hon 1 - vd: 1, 2, 3>: ";
     string _;
     getline(cin, _);
 
-    std::stringstream ss(_);
+    stringstream ss(_);
     int x;
     char comma;
 
@@ -493,6 +485,7 @@ void System::employer_PostJob(Employer &e) {
         if (!(ss >> comma))
             break;
     }
+
 
     // Mức lương
     cout << "Muc luong toi thieu: ";
@@ -523,9 +516,12 @@ void System::employer_PostJob(Employer &e) {
     newJob.setSalaryRange(minSalary, maxSalary);
     newJob.setMinExperience(minExp);
     newJob.setAgeRange(minAge, maxAge);
+    newJob.setApplicants({});
 
     jobs.push_back(newJob);
     e.addPostedJob(jobId);
+
+    newJob.postJob();
 
     cout << "\n✓ Dang tin thanh cong! Job ID: " << jobId << "\n";
     cout << "ℹ️  Tin tuyen dung dang cho Admin duyet.\n";
@@ -534,17 +530,15 @@ void System::employer_PostJob(Employer &e) {
 // 2.1. Xem tin đã đăng
 void System::employer_ViewMyJobs(Employer &e) {
     cout << "\n=== TIN TUYEN DUNG DA DANG ===\n";
-    auto postedJobIds = e.getPostedJobIds();
+    const auto postedJobs = Job::getJobsByEmployerId(e.getId());
 
-    if (postedJobIds.empty()) {
+    if (postedJobs.empty()) {
         cout << "Ban chua dang tin tuyen dung nao!\n";
         return;
     }
 
-    for (const string &jobId: postedJobIds) {
-        if (Job *job = findJobById(jobId)) {
-            job->display();
-        }
+    for (const auto &job: postedJobs) {
+        job.display();
     }
 }
 // 2.1. Chỉnh sửa tin tuyển dụng
@@ -555,13 +549,13 @@ void System::employer_EditJob(Employer &e) {
     string jobId;
     getline(cin, jobId);
 
-    Job *job = findJobById(jobId);
-    if (!job || job->getEmployerId() != e.getId()) {
+    Job job = Job::getJobById(jobId);
+    if (job.getJobId().empty() || job.getEmployerId() != e.getId()) {
         cout << "### Khong tim thay hoac ban khong co quyen chinh sua!\n";
         return;
     }
 
-    job->display();
+    job.display();
 
     cout << "\n--- CHINH SUA ---\n";
     cout << "1. Mo ta\n";
@@ -577,8 +571,9 @@ void System::employer_EditJob(Employer &e) {
             string desc;
             cout << "Nhap mo ta moi: ";
             getline(cin, desc);
-            job->setDescription(desc);
+            job.setDescription(desc);
             cout << "✓ Cap nhat thanh cong!\n";
+            Job::editJob(job);
             break;
         }
         case 2: {
@@ -587,16 +582,18 @@ void System::employer_EditJob(Employer &e) {
             cin >> minSalary;
             cout << "Muc luong toi da: ";
             cin >> maxSalary;
-            job->setSalaryRange(minSalary, maxSalary);
+            job.setSalaryRange(minSalary, maxSalary);
             cout << "✓ Cap nhat thanh cong!\n";
+            Job::editJob(job);
             break;
         }
         case 3: {
             int minExp;
             cout << "Kinh nghiem toi thieu (nam): ";
             cin >> minExp;
-            job->setMinExperience(minExp);
+            job.setMinExperience(minExp);
             cout << "✓ Cap nhat thanh cong!\n";
+            Job::editJob(job);
             break;
         }
         default:
@@ -612,15 +609,21 @@ void System::employer_DeleteJob(Employer &e) {
     string jobId;
     getline(cin, jobId);
 
-    auto it = find_if(jobs.begin(), jobs.end(),
-                      [&](const Job &j) { return j.getJobId() == jobId && j.getEmployerId() == e.getId(); });
+    Job toBeDeleted = Job::getJobById(jobId);
 
-    if (it != jobs.end()) {
-        jobs.erase(it);
-        e.removePostedJob(jobId);
-        cout << "✓ Xoa tin tuyen dung thanh cong!\n";
-    } else {
-        cout << "### Khong tim thay hoac ban khong co quyen xoa!\n";
+    if (!toBeDeleted.getJobId().empty() && toBeDeleted.getEmployerId() != e.getId()) {
+        cout << "Khong tim thay bai tuyen dung hoac ban khong co quyen xoa bai. Vui long kiem tra lai job id!\n";
+        return;
+    }
+
+    toBeDeleted.display();
+
+    char decision;
+    cout << "\n#### Xoa bai tuyen dung nay? (y/n) ";
+    cin >> decision;
+    if (tolower(decision) == 'y') {
+        toBeDeleted.remove();
+        cout << "#### XOA BAI THANH CONG!\n";
     }
 }
 
@@ -628,40 +631,33 @@ void System::employer_DeleteJob(Employer &e) {
 void System::employer_ViewApplications(Employer &e) {
     cout << "\n=== DANH SACH UNG VIEN UNG TUYEN ===\n";
 
-    auto postedJobIds = e.getPostedJobIds();
+    string jobId;
+
+    auto postedJobIds = Job::getJobsByEmployerId(e.getId());
     if (postedJobIds.empty()) {
         cout << "Ban chua co tin tuyen dung nao!\n";
         return;
     }
 
-    bool found = false;
-    for (const auto &jobId: postedJobIds) {
-        cout << "\n--- Job ID: " << jobId << " ---\n";
-        Job *job = findJobById(jobId);
-        if (job) {
-            cout << "Tieu de: " << job->getTitle() << "\n";
-        }
+    cin.ignore();
+    cout << "Nhap job id: ";
+    getline(cin, jobId);
 
-        for (const auto &app: applications) {
-            if (app.getJobId() == jobId) {
-                found = true;
-                app.display();
-
-                // Hiển thị thông tin ứng viên
-                JobSeeker *js = findJobSeekerById(app.getJobSeekerId());
-                if (js) {
-                    cout << "Thong tin ung vien:\n";
-                    cout << "  Username: " << js->getUsername() << "\n";
-                    cout << "  Email: " << js->getEmail() << "\n";
-                    cout << "  Phone: " << js->getPhone() << "\n";
-                }
-                cout << "---\n";
-            }
-        }
+    Job job = Job::getJobById(jobId);
+    if (!job.getJobId().empty() && job.getEmployerId() != e.getId()) {
+        cout << "Khong tim thay thong tin tuyen dung hoac ban khong co quyen. Vui long kiem tra lai job id!";
+        return;
     }
-
-    if (!found) {
-        cout << "Chua co ung vien nao ung tuyen!\n";
+    if (job.getApplicants().empty()) {
+        cout << "Khong tim thay ung vien. Neu khong dung hay lien he admin!\n";
+        return;
+    }
+    int count = 0;
+    for (auto &a : job.getApplicants()) {
+        cout << count << ".\n##############################\n";
+        JobSeeker::getJobSeekerById(a).displayInfo();
+        cout << "##############################\n";
+        count++;
     }
 }
 
@@ -742,38 +738,42 @@ void System::employer_FilterApplications(Employer &e) {
 }
 
 // 2.2. Chọn ứng viên trúng tuyển
-void System::employer_SelectCandidate(Employer &e) {
+// void System::employer_SelectCandidate(Employer &e) {
+//     cin.ignore();
+//     cout << "\n=== CHON UNG VIEN TRUNG TUYEN ===\n";
+//     cout << "Nhap Id bai dang tuyen dung: ";
+//     string jobId;
+//     getline(cin, jobId);
+//
+//     Job job = Job::getJobById(jobId);
+//
+//     if (job.getJobId().empty() || job.getEmployerId() != e.getId()) {
+//         cout << "Khong tim thay bai dang hoac ban khong co quyen. Vui long kiem tra lai id bai dang!\n";
+//         return;
+//     }
+//
+//     employer_ViewApplications(e);
+//
+//     cout << "Nhap id cua nhung nguoi"
+// }
+
+void System::employer_CloseJob(Employer &e) {
     cin.ignore();
-    cout << "\n=== CHON UNG VIEN TRUNG TUYEN ===\n";
-    cout << "Nhap Application ID: ";
-    string appId;
-    getline(cin, appId);
+    cout << "\n=== DONG BAI TUYEN DUNG ===\n";
+    cout << "Nhap Id bai dang tuyen dung: ";
+    string jobId;
+    getline(cin, jobId);
 
-    for (auto &app: applications) {
-        if (app.getApplicationId() == appId) {
-            // Check nếu job thuộc về employer này
-            if (auto postedJobIds = e.getPostedJobIds();
-                find(postedJobIds.begin(), postedJobIds.end(), app.getJobId()) == postedJobIds.end()) {
-                cout << "### Ban khong co quyen thao tac voi don nay!\n";
-                return;
-            }
+    Job job = Job::getJobById(jobId);
 
-            app.setStatus(ACCEPTED);
-            cout << "✓ Da chon ung vien trung tuyen!\n";
-
-            // Gửi thông báo cho ứng viên
-            // JobSeeker *js = findJobSeekerById(app.getJobSeekerId());
-            // if (js) {
-            //     string notif =
-            //             "Chuc mung! Ban da trung tuyen cong viec " + app.getJobId() + " tai " + e.getCompanyName();
-            //     sendNotificationToJobSeeker(app.getJobSeekerId(), notif);
-            //     cout << "Thong bao da duoc gui den ung vien " << js->getUsername() << "\n";
-            // }
-            return;
-        }
+    if (job.getJobId().empty() || job.getEmployerId() != e.getId()) {
+        cout << "Khong tim thay bai dang hoac ban khong co quyen. Vui long kiem tra lai id bai dang!\n";
+        return;
     }
 
-    cout << "### Khong tim thay Application ID!\n";
+    job.setStatus(false);
+    Job::editJob(job);
+    cout << "#### Dong bai tuyen dung thanh cong.\n";
 }
 
 // 2.3. Cập nhật thông tin công ty
@@ -781,11 +781,11 @@ void System::employer_UpdateProfile(Employer &e) {
     cin.ignore();
     cout << "\n=== CAP NHAT THONG TIN CONG TY ===\n";
     cout << "1. Ten cong ty\n";
-    cout << "2. Dia chi\n";
-    cout << "3. Nganh nghe\n";
-    cout << "4. Mo ta\n";
-    cout << "5. Email\n";
-    cout << "6. So dien thoai\n";
+    // cout << "2. Dia chi\n";
+    // cout << "3. Nganh nghe\n";
+    // cout << "4. Mo ta\n";
+    cout << "2. Email\n";
+    cout << "3. So dien thoai\n";
     cout << "Chon: ";
     int choice;
     cin >> choice;
@@ -797,31 +797,34 @@ void System::employer_UpdateProfile(Employer &e) {
             cout << "Nhap ten cong ty: ";
             getline(cin, value);
             e.setCompanyName(value);
+            e.updateProfile();
             break;
+        // case 2:
+        //     cout << "Nhap dia chi: ";
+        //     getline(cin, value);
+        //     e.setCompanyAddress(value);
+        //     break;
+        // case 3:
+        //     cout << "Nhap nganh nghe: ";
+        //     getline(cin, value);
+        //     e.setIndustry(value);
+        //     break;
+        // case 4:
+        //     cout << "Nhap mo ta: ";
+        //     getline(cin, value);
+        //     e.setCompanyDescription(value);
+        //     break;
         case 2:
-            cout << "Nhap dia chi: ";
-            getline(cin, value);
-            e.setCompanyAddress(value);
-            break;
-        case 3:
-            cout << "Nhap nganh nghe: ";
-            getline(cin, value);
-            e.setIndustry(value);
-            break;
-        case 4:
-            cout << "Nhap mo ta: ";
-            getline(cin, value);
-            e.setCompanyDescription(value);
-            break;
-        case 5:
             cout << "Nhap email: ";
             getline(cin, value);
             e.setEmail(value);
+            e.updateProfile();
             break;
-        case 6:
+        case 3:
             cout << "Nhap so dien thoai: ";
             getline(cin, value);
             e.setPhone(value);
+            e.updateProfile();
             break;
         default:
             cout << "Lua chon khong hop le!\n";
@@ -844,10 +847,10 @@ void System::employer_ViewHistory(Employer &e) {
     cout << "Tong so tin da dang: " << postedJobIds.size() << "\n\n";
 
     for (const auto &jobId: postedJobIds) {
-        if (const Job *job = findJobById(jobId)) {
-            cout << "Job ID: " << jobId << " | " << job->getTitle() << "\n";
-            cout << "Trang thai: " << (job->getStatus() ? "Active" : "Closed") << "\n";
-            cout << "Ngay dang: " << job->getPostedDate() << "\n";
+        if (const Job job = Job::getJobById(jobId); !job.getJobId().empty()) {
+            cout << "Job ID: " << jobId << " | " << job.getTitle() << "\n";
+            cout << "Trang thai: " << (job.getStatus() ? "Active" : "Closed") << "\n";
+            cout << "Ngay dang: " << job.getPostedDate() << "\n";
 
             // Đếm số đơn ứng tuyển
             int appCount = 0;
@@ -1134,16 +1137,16 @@ void System::jobseeker_ViewJobDetail(JobSeeker &js) {
     string jobId;
     getline(cin, jobId);
 
-    Job *job = findJobById(jobId);
-    if (!job || job->getStatus()) {
+    Job job = Job::getJobById(jobId);
+    if (job.getJobId().empty() || job.getStatus()) {
         cout << "### Khong tim thay tin tuyen dung!\n";
         return;
     }
 
-    job->display();
+    job.display();
 
     // Hiển thị thông tin công ty
-    Employer *emp = findEmployerById(job->getEmployerId());
+    Employer *emp = findEmployerById(job.getEmployerId());
     if (emp) {
         cout << "\n--- THONG TIN CONG TY ---\n";
         cout << "Ten cong ty: " << emp->getCompanyName() << "\n";
@@ -1162,8 +1165,8 @@ void System::jobseeker_ApplyJob(JobSeeker &js) {
     string jobId;
     getline(cin, jobId);
 
-    Job *job = findJobById(jobId);
-    if (!job || job->getStatus()) {
+    Job job = Job::getJobById(jobId);
+    if (job.getJobId().empty() || job.getStatus()) {
         cout << "### Khong tim thay tin tuyen dung hoac tin da dong!\n";
         return;
     }
@@ -1198,11 +1201,9 @@ void System::jobseeker_ViewApplicationStatus(JobSeeker &js) {
             found = true;
             app.display();
 
-            Job *job = findJobById(app.getJobId());
-            if (job) {
-                cout << "Tin tuyen dung: " << job->getTitle() << "\n";
-                Employer *emp = findEmployerById(job->getEmployerId());
-                if (emp) {
+            if (Job job = Job::getJobById(app.getJobId()); !job.getJobId().empty()) {
+                cout << "Tin tuyen dung: " << job.getTitle() << "\n";
+                if (Employer *emp = findEmployerById(job.getEmployerId())) {
                     cout << "Cong ty: " << emp->getCompanyName() << "\n";
                 }
             }
@@ -1227,11 +1228,10 @@ void System::jobseeker_ViewHistory(JobSeeker &js) {
     cout << "Tong so cong viec da ung tuyen: " << appliedJobs.size() << "\n\n";
 
     for (const auto &jobId: appliedJobs) {
-        Job *job = findJobById(jobId);
-        if (job) {
-            cout << "Job ID: " << jobId << " | " << job->getTitle() << "\n";
+        if (Job job = Job::getJobById(jobId); !job.getJobId().empty()) {
+            cout << "Job ID: " << jobId << " | " << job.getTitle() << "\n";
             cout << "Cong ty: ";
-            Employer *emp = findEmployerById(job->getEmployerId());
+            Employer *emp = findEmployerById(job.getEmployerId());
             if (emp) {
                 cout << emp->getCompanyName();
             }

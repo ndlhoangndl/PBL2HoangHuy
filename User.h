@@ -125,7 +125,7 @@ public:
     // Virtual methods
     virtual void displayInfo() const {
         cout << "ID: " << id << "\n";
-        cout << "Username: " << username << "\n";
+        cout << "Ten: " << fullName << "\n";
         cout << "Email: " << email << "\n";
         cout << "Phone: " << phone << "\n";
     }
