@@ -38,6 +38,7 @@ private:
     int minAge;
     int maxAge;
     vector<string> applicants;
+    vector<string> accepted;
 
     // 1.4. Quản lý
     bool status; // "active", "closed"
@@ -45,12 +46,12 @@ private:
 
 public:
     Job() :
-        jobType(), minSalary(0), maxSalary(0), minExperience(0), minAge(18), maxAge(100), applicants({}), status(true) {
-    }
+        jobType(), minSalary(0), maxSalary(0), minExperience(0), minAge(18), maxAge(100), applicants({}), accepted({}),
+        status(true) {}
 
     Job(string Id, string employerId, string title) :
         id(Id), employerId(employerId), title(title), jobType(1), placeOfWork(1), minSalary(), maxSalary(),
-        minExperience(0), minAge(18), maxAge(100), applicants({}), status(true) {
+        minExperience(0), minAge(18), maxAge(100), applicants({}), accepted({}), status(true) {
 
         const std::time_t now = std::time(nullptr);
         const std::tm *gmt = std::gmtime(&now); // UTC time
@@ -66,7 +67,8 @@ public:
         placeOfWork(_.value("placeOfWork", vector<int>{})), minSalary(_.value("minSalary", 0)),
         maxSalary(_.value("maxSalary", 0)), minExperience(_.value("minExperience", 0)), minAge(_.value("minAge", 0)),
         maxAge(_.value("maxAge", 0)), applicants(_.value("applicants", vector<string>{})),
-        status(_.value("status", true)), postedDate(_.value("postedDate", "")) {}
+        accepted(_.value("accepted", vector<string>{})), status(_.value("status", true)),
+        postedDate(_.value("postedDate", "")) {}
 
     // Getters
     [[nodiscard]] string getJobId() const { return id; }
@@ -80,9 +82,8 @@ public:
         for (auto &i: placeOfWork)
             result.push_back(placeOfWorkInterface[i]);
         return result;
-    }[[nodiscard]] vector<int> getPlaceOfWorkId() const {
-        return placeOfWork;
     }
+    [[nodiscard]] vector<int> getPlaceOfWorkId() const { return placeOfWork; }
     [[nodiscard]] double getMinSalary() const { return minSalary; }
     [[nodiscard]] double getMaxSalary() const { return maxSalary; }
     [[nodiscard]] string getSalaryRange() const { return to_string(minSalary) + " - " + to_string(maxSalary); }
@@ -90,6 +91,7 @@ public:
     [[nodiscard]] int getMinAge() const { return minAge; }
     [[nodiscard]] int getMaxAge() const { return maxAge; }
     [[nodiscard]] vector<string> getApplicants() const { return applicants; }
+    [[nodiscard]] vector<string> getAccepted() const { return accepted; }
     [[nodiscard]] bool getStatus() const { return status; }
     [[nodiscard]] string getPostedDate() const { return postedDate; }
     [[nodiscard]] static int getLatestJobId() { return PBLJson::getLatestIndex("jobs.json"); }
@@ -111,21 +113,13 @@ public:
     void setStatus(const string &_status) { status = _status == "Active"; }
     void setStatus(const bool &_status) { status = _status; }
     void setApplicants(const vector<string> &_applicants = {}) { applicants = _applicants; }
+    void setAccepted(const vector<string> &_accepted = {}) { accepted = _accepted; }
 
     [[nodiscard]] string getJobTypeString() const { return jobTypeInterface[jobType]; }
 
-    void display() const {
-        cout << "\n========================================\n";
-        cout << "Tieu de: " << title << "\n";
-        cout << "Loai hinh: " << getJobTypeString() << "\n";
-        cout << "Muc luong: " << std::fixed << std::setprecision(2) << minSalary << " - " << maxSalary << " VND\n";
-        cout << "Kinh nghiem: " << minExperience << "+ nam\n";
-        cout << "Do tuoi: " << minAge << " - " << maxAge << "\n";
-        cout << "So nguoi ung tuyen: " << applicants.size() << "\n";
-        cout << "Mo ta: " << description << "\n";
-        cout << "Ngay dang: " << postedDate << "\n";
-        cout << "========================================\n";
-    }
+    void display() const;
+    void acceptedView() const;
+    void notAcceptedView() const;
 
     static vector<Job> getAllActiveJob(const string &filename = "jobs.json") {
         vector<Job> result;
@@ -240,11 +234,30 @@ public:
 
     void addApplicant(const string &applicantId, const string &filename = "jobs.json") const {
         json data = PBLJson::loadList(filename);
+
+        for (auto &j: data) {
+            if (j.value("id", "") == id) {
+
+                if (!j.contains("applicants") || !j["applicants"].is_array())
+                    j["applicants"] = json::array();
+
+                j["applicants"].push_back(applicantId);
+
+                PBLJson::saveList(data, filename);
+                return;
+            }
+        }
+    }
+
+
+    void addAccepted(const string &applicantId, const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
         for (auto &j: data) {
             if (!j.value("id", "").empty() && j.value("id", "") == id) {
-                vector<string> applicantIds = j.value("applicants", vector<string>{});
-                applicantIds.push_back(applicantId);
-                j.update({"applicants", applicantIds});
+                vector<string> acceptedIds = j.value("accepted", vector<string>{});
+                acceptedIds.push_back(applicantId);
+                j.update({"accepted", acceptedIds});
+                PBLJson::saveList(data, filename);
                 return;
             }
         }
@@ -278,10 +291,20 @@ public:
                         {"minAge", minAge},
                         {"maxAge", maxAge},
                         {"applicants", applicants},
+                        {"accepted", accepted},
                         {"status", status},
                         {"postedDate", postedDate}});
 
         PBLJson::saveList(data, filename);
+    }
+    // 0: accepted | -1: not accepted | 1: waiting for reviews
+    [[nodiscard]] int checkApplyStatus(const string &applicantId, const string &filename = "jobs.json") const {
+        if (std::any_of(accepted.begin(), accepted.end(),
+                        [&](const string &acceptedId) { return acceptedId == applicantId; }))
+            return 0;
+        if (!status)
+            return -1;
+        return 1;
     }
 };
 

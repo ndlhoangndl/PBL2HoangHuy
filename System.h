@@ -76,7 +76,7 @@ public:
 
     // Ứng tuyển
     void jobseeker_ApplyJob(JobSeeker &js);
-    void jobseeker_ViewApplicationStatus(JobSeeker &js);
+    void jobseeker_ViewAppliesStatus(JobSeeker &js);
 
     //  Quản lý tài khoản
     void jobseeker_ViewHistory(JobSeeker &js);

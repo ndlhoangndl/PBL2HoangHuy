@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 
+#include "hash.h"
 #include "json.h"
 
 using namespace std;
@@ -40,9 +41,24 @@ public:
     User(string id, string username, string password, string email, string phone, bool isActive) :
         id(id), username(username), password(password), email(email), phone(phone), isActive(isActive) {};
 
+    explicit User(const json &_) :
+        id(_.value("id", "")), username(_.value("username", "")), password(_.value("password", "")),
+        email(_.value("email", "")), phone(_.value("phone", "")), fullName(_.value("fullName", "")),
+        dateOfBirth(_.value("dateOfBirth", "")), isActive(_.value("isActive", false)),
+        createdAt(_.value("createdAt", "")), role(_.value("role", "")), companyName(_.value("companyName", "")) {}
+
+
     virtual ~User() = default; // Virtual destructor
 
-    [[nodiscard]] virtual string getRole() const { return role; }
+    [[nodiscard]] virtual string getRole() const {
+        json data = PBLJson::loadList("users.json");
+        for (auto &u: data) {
+            if (!u.value("id", "").empty() && u.value("id", "") == id) {
+                return u.value("role", "");
+            }
+        }
+        return "";
+    }
 
     // Getters
     [[nodiscard]] string getId() const { return id; }
@@ -75,7 +91,7 @@ public:
 
     // Setters
     void setPassword(const string &_password) {
-        password = _password;
+        password = sha256(_password);
         updateData();
     }
     void setEmail(const string &_email) {
@@ -112,7 +128,6 @@ public:
                         {"phone", phone},
                         {"email", email},
                         {"isActive", isActive},
-                        {"role", role},
                         {"createdAt", createdAt},
                         {"companyName", companyName},
                 });

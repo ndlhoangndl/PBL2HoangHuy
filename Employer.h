@@ -85,6 +85,16 @@ public:
         }
         PBLJson::saveList(data, "users.json");
     }
+
+    static Employer getEmployerById(const string &id, const string &filename = "users.json") {
+        json data = PBLJson::loadList(filename);
+        for (auto &_u: data) {
+            if (!_u.value("id", "").empty() && _u.value("id", "") == id) {
+                return { User(_u) };
+            }
+        }
+        return { User() };
+    }
 };
 
 #endif

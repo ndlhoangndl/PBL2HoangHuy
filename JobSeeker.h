@@ -59,6 +59,10 @@ public:
 
 
     [[nodiscard]] string getRole() const override { return "jobseeker"; }
+    [[nodiscard]] vector<string> getAppliedJobs(const string &filename = "jobSeekers.json") const {
+        json data = PBLJson::loadList(filename);
+        return data[id].value("appliedJobs", vector<string>{});
+    }
 
     // CV Management
     void updateCVOnline(const string &maj, float yoe) {
@@ -80,7 +84,6 @@ public:
 
     // Ứng tuyển
     void applyForJob(const string &jobId) { appliedJobs.push_back(jobId); }
-    vector<string> getAppliedJobs() const { return appliedJobs; }
 
     // Thông báo
     void addNotification(const string &msg) { notifications.push_back(msg); }
@@ -140,6 +143,18 @@ public:
     static JobSeeker getJobSeekerById(const string &id, const string &filename = "jobSeekers.json") {
         json data = PBLJson::loadList(filename);
         return JobSeeker(data[id], id);
+    }
+
+    void addAppliedJob(const string &jobId, const string &filename = "jobSeekers.json") const {
+        json data = PBLJson::loadList(filename);
+
+        if (!data[id].contains("appliedJobs") || !data[id]["appliedJobs"].is_array()) {
+            data[id]["appliedJobs"] = json::array();
+        }
+
+        data[id]["appliedJobs"].push_back(jobId);
+
+        PBLJson::saveList(data, filename);
     }
 };
 
