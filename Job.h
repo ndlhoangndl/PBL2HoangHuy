@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "JobSeeker.h"
 #include "json.h"
 using namespace std;
 
@@ -305,6 +307,73 @@ public:
         if (!status)
             return -1;
         return 1;
+    }
+
+    [[nodiscard]] vector<JobSeeker> getApplications(const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+        for (auto &j: data) {
+            if (!j.value("id", "").empty() && j.value("id", "") == id) {
+                vector<JobSeeker> applications;
+                for (auto &i: j.value("applicants", vector<string>{})) {
+                    applications.push_back(JobSeeker::getJobSeekerById(i));
+                }
+                return applications;
+            }
+        }
+        return {};
+    };
+
+    // end = start + offset
+    [[nodiscard]] vector<JobSeeker> getApplicationsByIndex(int start, int offset,
+                                                           const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+        for (auto &j: data) {
+            if (!j.value("id", "").empty() && j.value("id", "") == id) {
+                vector<JobSeeker> applications;
+                for (int i = start; i < start + offset; ++i) {
+                    if (i == j.value("applicants", vector<string>{}).size())
+                        return applications;
+                    applications.push_back(JobSeeker::getJobSeekerById(j.value("applicants", vector<string>{}).at(i)));
+                }
+                return applications;
+            }
+        }
+        return {};
+    };
+
+    // ########## FILTERING TERRITORY ########## //
+
+    enum class FilterType { Experience, Age };
+
+    enum class SortType { ASC, DESC, RANGE };
+
+    [[nodiscard]] vector<JobSeeker> getApplicationsFiltered(FilterType filterType, SortType sortType, int minExp = -1,
+                                                            int _minAge = -1, int _maxAge = -1,
+                                                            const string &filename = "jobs.json") const {
+        vector<JobSeeker> applications = getApplications(filename);
+        auto cmp = [&](const JobSeeker &a, const JobSeeker &b) {
+            switch (filterType) {
+                case FilterType::Experience:
+                    return sortType == SortType::DESC ? a.getYearsOfExperience() > b.getYearsOfExperience()
+                                                     : a.getYearsOfExperience() < b.getYearsOfExperience();
+
+                case FilterType::Age:
+                    return sortType == SortType::DESC ? a.getAge() > b.getAge() : a.getAge() < b.getAge();
+            }
+            return false;
+        };
+        sort(applications.begin(), applications.end(), cmp);
+
+        if (sortType == SortType::RANGE) {
+            for (int i = 0; i < applications.size(); ++i) {
+                if ((filterType == FilterType::Age &&
+                     (applications.at(i).getAge() < _minAge || applications.at(i).getAge() > _maxAge)) ||
+                    (filterType == FilterType::Experience && applications.at(i).getYearsOfExperience() < minExp))
+                    applications.erase(applications.begin() + i);
+            }
+        }
+
+        return applications;
     }
 };
 

@@ -9,6 +9,19 @@
 using json = nlohmann::json;
 
 namespace PBLJson {
+    inline json loadAny(const std::string& filename) {
+        std::ifstream in(filename);
+        if (!in) return {};   // null JSON
+        json j;
+        in >> j;
+        return j;
+    }
+
+    inline void saveAny(const json& j, const std::string& filename) {
+        std::ofstream out(filename);
+        out << j.dump(4);
+    }
+
     // Loads JSON array from file. If file doesn't exist, returns empty array.
     inline json loadList(const std::string& filename) {
         std::ifstream in(filename);

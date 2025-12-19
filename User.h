@@ -33,7 +33,7 @@ public:
         createdAt(""), role(""), companyName("") {};
 
     User(const string &id, const string &username, const string &password, const string &email, const string &phone,
-         const string &fullName, const string &dateOfBirth, const bool isActive, const string &createdAt,
+         const string &fullName, const string &dateOfBirth, const bool isActive, const string &createdAt, const string &role,
          const string &companyName = "") :
         id(id), username(username), password(password), email(email), phone(phone), fullName(fullName),
         dateOfBirth(dateOfBirth), isActive(isActive), createdAt(createdAt), companyName(companyName) {}
@@ -188,29 +188,28 @@ public:
 
         for (const auto &u: users) {
 
-            // Safe username check
-            if (u.value("username", "") == username) {
+            if (u.contains("username") && u["username"].is_string() && u["username"].get<std::string>() == username) {
 
-                string companyName;
+                auto getStr = [&](const char *key) -> std::string {
+                    return (u.contains(key) && u[key].is_string()) ? u[key].get<std::string>() : "";
+                };
 
-                if (u.contains("companyName") && u["companyName"].is_string())
-                    companyName = u["companyName"].get<std::string>();
+                auto getBool = [&](const char *key, bool def = false) -> bool {
+                    return (u.contains(key) && u[key].is_boolean()) ? u[key].get<bool>() : def;
+                };
 
-                User user(u.value("id", "0"), u.value("username", ""), u.value("password", ""), u.value("email", ""),
-                          u.value("phone", ""), u.value("fullName", ""), u.value("dateOfBirth", "0000-00-00"),
-                          u.value("isActive", true), u.value("createdAt", ""), companyName);
+                User user(getStr("id"), getStr("username"), getStr("password"), getStr("email"), getStr("phone"),
+                          getStr("fullName"), getStr("dateOfBirth"), getBool("isActive", true), getStr("createdAt"),
+                          getStr("companyName"));
 
-                // Optional role assignment
-                if (u.contains("role") && u["role"].is_string()) {
-                    user.role = u["role"];
-                }
-
+                user.role = getStr("role");
                 return user;
             }
         }
 
-        return {"", "", "", "", "", "", "", false, "", ""};
+        return {};
     }
+
 
     // Find user by phone
     static User findPhone(const std::string &phone, const std::string &filename = "users.json") {

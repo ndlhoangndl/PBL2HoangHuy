@@ -24,7 +24,7 @@ public:
 
     Employer(const User &user) :
         User(user.id, user.username, user.password, user.email, user.phone, user.fullName, user.dateOfBirth,
-             user.isActive, user.createdAt, user.companyName),
+             user.isActive, user.createdAt, user.role, user.companyName),
         companyName(user.companyName), postedJobIds(vector<string>{}) {}
 
     string getRole() const override { return "employer"; }

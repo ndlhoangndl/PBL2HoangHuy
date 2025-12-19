@@ -26,7 +26,7 @@ public:
     // ========== MENU FUNCTIONS ==========
     void adminMenu(const Admin &a);
     void employerMenu(Employer &e);
-    void jobSeekerMenu(JobSeeker &js);
+    static void jobSeekerMenu(JobSeeker &js);
 
     // ========== ADMIN FUNCTIONS ==========
     // Quản lý danh sách
@@ -51,14 +51,14 @@ public:
     // ========== EMPLOYER FUNCTIONS ==========
     //  Quản lý tin tuyển dụng
     void employer_PostJob(Employer &e);
-    void employer_ViewMyJobs(Employer &e);
-    void employer_EditJob(Employer &e);
-    void employer_DeleteJob(Employer &e);
+    static void employer_ViewMyJobs(Employer &e);
+    static void employer_EditJob(Employer &e);
+    static void employer_DeleteJob(Employer &e);
 
     //  Quản lý ứng viên
-    void employer_ViewApplications(Employer &e);
+    static void employer_ViewApplications(Employer &e);
     void employer_FilterApplications(Employer &e);
-    void employer_CloseJob(Employer &e);
+    static void employer_CloseJob(Employer &e);
 
     //  Quản lý tài khoản
     static void employer_UpdateProfile(Employer &e);
@@ -75,15 +75,15 @@ public:
     void jobseeker_ViewJobDetail(JobSeeker &js);
 
     // Ứng tuyển
-    void jobseeker_ApplyJob(JobSeeker &js);
-    void jobseeker_ViewAppliesStatus(JobSeeker &js);
+    static void jobseeker_ApplyJob(JobSeeker &js);
+    static void jobseeker_ViewAppliesStatus(JobSeeker &js);
 
     //  Quản lý tài khoản
     void jobseeker_ViewHistory(JobSeeker &js);
     // void jobseeker_ViewNotifications(JobSeeker &js);
 
     // ========== HELPER FUNCTIONS ==========
-    string generateJobId();
+    static string generateJobId();
     string generateAppId();
     JobSeeker *findJobSeekerById(const string &id);
     Employer *findEmployerById(const string &id);
