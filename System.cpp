@@ -564,8 +564,8 @@ void System::employer_PostJob(Employer &e) {
 
     newJob.postJob();
 
-    cout << "\n✓ Dang tin thanh cong! Job ID: " << jobId << "\n";
-    cout << "ℹ️  Tin tuyen dung dang cho Admin duyet.\n";
+    cout << "\n Dang tin thanh cong! Job ID: " << jobId << "\n";
+    cout << "  Tin tuyen dung dang cho Admin duyet.\n";
 }
 
 // 2.1. Xem tin đã đăng
