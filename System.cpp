@@ -223,8 +223,7 @@ void System::admin_ManageJobs() {
                 break;
             case 3: {
                 cout << "\n--- TAT CA TIN TUYEN DUNG ---\n";
-                json data = PBLJson::loadList("jobs.json");
-                vector<Job> vJobs = Job::getAllJob(data);
+                vector<Job> vJobs = Job::getAllJob();
                 if (vJobs.size() < 3) {
                     for (auto &j: vJobs) {
                         j.display();
@@ -508,8 +507,8 @@ void System::employer_PostJob(Employer &e) {
     cout << "\n=== DANG TIN TUYEN DUNG ===\n";
 
     string title, description;
-    int jobType, minExp, minAge, maxAge;
-    double minSalary, maxSalary;
+    int jobType, minAge, maxAge;
+    double minSalary, maxSalary, minExp;
     vector<int> placeOfWork;
 
     cout << "Tieu de: ";
