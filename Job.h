@@ -36,7 +36,7 @@ private:
     int jobType;
     vector<int> placeOfWork;
     double minSalary, maxSalary;
-    int minExperience; // Số năm kinh nghiệm tối thiểu
+    float minExperience; // Số năm kinh nghiệm tối thiểu
     int minAge;
     int maxAge;
     vector<string> applicants;
@@ -67,7 +67,7 @@ public:
         id(_.value("id", "")), employerId(_.value("employerId", "")), title(_.value("title", "")),
         description(_.value("description", "")), jobType(_.value("jobType", 1)),
         placeOfWork(_.value("placeOfWork", vector<int>{})), minSalary(_.value("minSalary", 0)),
-        maxSalary(_.value("maxSalary", 0)), minExperience(_.value("minExperience", 0)), minAge(_.value("minAge", 0)),
+        maxSalary(_.value("maxSalary", 0)), minExperience(_.value("minExperience", 0.0)), minAge(_.value("minAge", 0)),
         maxAge(_.value("maxAge", 0)), applicants(_.value("applicants", vector<string>{})),
         accepted(_.value("accepted", vector<string>{})), status(_.value("status", true)),
         postedDate(_.value("postedDate", "")) {}
@@ -89,7 +89,7 @@ public:
     [[nodiscard]] double getMinSalary() const { return minSalary; }
     [[nodiscard]] double getMaxSalary() const { return maxSalary; }
     [[nodiscard]] string getSalaryRange() const { return to_string(minSalary) + " - " + to_string(maxSalary); }
-    [[nodiscard]] int getMinExperience() const { return minExperience; }
+    [[nodiscard]] float getMinExperience() const { return minExperience; }
     [[nodiscard]] int getMinAge() const { return minAge; }
     [[nodiscard]] int getMaxAge() const { return maxAge; }
     [[nodiscard]] vector<string> getApplicants() const { return applicants; }
@@ -97,6 +97,7 @@ public:
     [[nodiscard]] bool getStatus() const { return status; }
     [[nodiscard]] string getPostedDate() const { return postedDate; }
     [[nodiscard]] static int getLatestJobId() { return PBLJson::getLatestIndex("jobs.json"); }
+    [[nodiscard]] vector<string> getApplicantsId() { return applicants; }
 
     // Setters
     void setTitle(const string &t) { title = t; }
@@ -107,7 +108,7 @@ public:
         minSalary = _minSalary;
         maxSalary = _maxSalary;
     }
-    void setMinExperience(int exp) { minExperience = exp; }
+    void setMinExperience(float exp) { minExperience = exp; }
     void setAgeRange(int min, int max) {
         minAge = min;
         maxAge = max;
@@ -265,6 +266,21 @@ public:
         }
     }
 
+    void addAccepted(const vector<string> &applicantIds, const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+        for (auto &j : data) {
+            if (!j.value("id", "").empty() && j.value("id", "") == id) {
+                vector<string> acceptedIds = j.value("accepted", vector<string>{});
+                for (auto &i : applicantIds) {
+                    acceptedIds.push_back(i);
+                }
+                j.update({"accepted", acceptedIds});
+                PBLJson::saveList(data, filename);
+                return;
+            }
+        }
+    }
+
     void remove(const string &filename = "jobs.json") const {
         json data = PBLJson::loadList(filename);
 
@@ -347,7 +363,7 @@ public:
 
     enum class SortType { ASC, DESC, RANGE };
 
-    [[nodiscard]] vector<JobSeeker> getApplicationsFiltered(FilterType filterType, SortType sortType, int minExp = -1,
+    [[nodiscard]] vector<JobSeeker> getApplicationsFiltered(FilterType filterType, SortType sortType, float minExp = -1,
                                                             int _minAge = -1, int _maxAge = -1,
                                                             const string &filename = "jobs.json") const {
         vector<JobSeeker> applications = getApplications(filename);
@@ -355,7 +371,7 @@ public:
             switch (filterType) {
                 case FilterType::Experience:
                     return sortType == SortType::DESC ? a.getYearsOfExperience() > b.getYearsOfExperience()
-                                                     : a.getYearsOfExperience() < b.getYearsOfExperience();
+                                                      : a.getYearsOfExperience() < b.getYearsOfExperience();
 
                 case FilterType::Age:
                     return sortType == SortType::DESC ? a.getAge() > b.getAge() : a.getAge() < b.getAge();

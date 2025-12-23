@@ -57,6 +57,8 @@ public:
 
     //  Quản lý ứng viên
     static void employer_ViewApplications(Employer &e);
+    void employer_SelectCandidate(Employer &e);
+    void employer_RemoveAccepted(Employer &e);
     void employer_FilterApplications(Employer &e);
     static void employer_CloseJob(Employer &e);
 

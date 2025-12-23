@@ -83,7 +83,7 @@ public:
                "\nKinh nghiem: " + to_string(yearsOfExperience) + " nam";
     }
     [[nodiscard]] string getMajor() const { return major; }
-    [[nodiscard]] int getYearsOfExperience() const { return yearsOfExperience; }
+    [[nodiscard]] float getYearsOfExperience() const { return yearsOfExperience; }
     vector<string> getSkills() const { return skills; }
 
     // Ứng tuyển

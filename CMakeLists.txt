@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(external/cryptopp-cmake)
 
-add_executable(PBL2 main.cpp System.cpp Job.cpp)
+add_executable(PBL2 main.cpp System.cpp)
 
 if(WIN32)
     target_link_options(PBL2 PRIVATE -static-libgcc -static-libstdc++ -static)
