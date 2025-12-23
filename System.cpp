@@ -43,6 +43,7 @@ Employer *System::findEmployerById(const string &id) {
 void Job::display() const {
     cout << "\n========================================\n";
     cout << "Job id: " << id << "\n";
+    cout << "Id nguoi dang tin: " << employerId << "\n";
     cout << "Tieu de: " << title << "\n";
     cout << "Loai hinh: " << getJobTypeString() << "\n";
     cout << "Muc luong: " << std::fixed << std::setprecision(2) << minSalary << " - " << maxSalary << " VND\n";
