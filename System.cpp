@@ -4,6 +4,7 @@
 #include <regex>
 #include "hash.h"
 #include "json.h"
+#include <conio.h>
 using namespace std;
 
 // ========== CONSTRUCTOR ==========
@@ -242,7 +243,7 @@ void System::admin_ManageJobs() {
                         vJobs[i].display();
                     }
 
-                    cout << " ---- Trang " << p << "/" << ceil(vJobs.size() / maxJobsPerPage) << " ---\n";
+                    cout << " ---- Trang " << p << "/" << totalPages << " ---\n";
                     cout << " ---- ---- Vui long nhap so trang can den (0 de thoat): ";
 
                     cin >> p;
@@ -897,7 +898,7 @@ void System::employer_SelectCandidate(Employer &e) {
 
     vector<string> acceptedIds;
 
-    cout << "Nhap lan luot id cua cac ung vien trung tuyen < vd: 1 enter 2 enter >\n";
+    cout << "Nhap lan luot id cua cac ung vien trung tuyen < vd: 1 enter 2 enter > -- 0 de thoat\n";
     int count = 0;
     while (true) {
         ++count;
@@ -969,7 +970,7 @@ void System::employer_RemoveAccepted(Employer &e) {
 
     vector<string> removeIds;
 
-    cout << "Nhap lan luot id cua cac ung vien can xoa khoi bang trung tuyen < vd: 1 enter 2 enter >\n";
+    cout << "Nhap lan luot id cua cac ung vien can xoa khoi bang trung tuyen < vd: 1 enter 2 enter > -- 0 de thoat\n";
     int count = 0;
     while (true) {
         ++count;
@@ -1556,6 +1557,43 @@ void System::jobseeker_ViewHistory(JobSeeker &js) {
 // MAIN SYSTEM FUNCTIONS
 // ========================================
 
+
+enum IN {
+    IN_BACK = 8,
+    IN_RET = 13
+};
+
+std::string takePasswdFromUser(
+    char sp = '*')
+{
+    string passwd = "";
+    char ch_ipt;
+
+    while (true) {
+
+        ch_ipt = getch();
+
+        if (ch_ipt == IN::IN_RET) {
+            cout << endl;
+            return passwd;
+        }
+        else if (ch_ipt == IN::IN_BACK
+                 && passwd.length() != 0) {
+            passwd.pop_back();
+            cout << "\b \b";
+
+            continue;
+                 }
+        else if (ch_ipt == IN::IN_BACK
+                 && passwd.length() == 0) {
+            continue;
+                 }
+
+        passwd.push_back(ch_ipt);
+        cout << sp;
+    }
+}
+
 void System::registerUser() {
     int role;
     string id, username, password, email, phone, fullName, dateOfBirth;
@@ -1661,6 +1699,7 @@ void System::loginUser() {
     cout << "\nUsername: ";
     getline(cin, username);
     cout << "Password: ";
+    // password = takePasswdFromUser();
     getline(cin, password);
 
     const string hashedPassword = sha256(password);

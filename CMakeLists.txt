@@ -8,9 +8,9 @@ add_subdirectory(external/cryptopp-cmake)
 
 add_executable(PBL2 main.cpp System.cpp)
 
-if(WIN32)
+if (WIN32)
     target_link_options(PBL2 PRIVATE -static-libgcc -static-libstdc++ -static)
-endif()
+endif ()
 
 target_link_libraries(PBL2 PRIVATE cryptopp::cryptopp)
 target_include_directories(PBL2 PRIVATE include)
