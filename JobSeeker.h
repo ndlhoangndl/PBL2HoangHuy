@@ -98,7 +98,9 @@ public:
         User::displayInfo();
         cout << "Vai tro: Ung vien\n";
         if (getAge() > 0) {
-            cout << "\n--- THONG TIN CV ---\n";
+            cout << "====================================\n";
+            cout << "||         THONG TIN CV           ||\n";
+            cout << "====================================\n";
             cout << "Tuoi: " << getAge() << "\n";
             cout << "Chuyen nganh: " << major << "\n";
             cout << "Kinh nghiem: " << yearsOfExperience << " nam\n";

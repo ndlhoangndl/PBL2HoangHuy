@@ -139,6 +139,9 @@ public:
 
     // Virtual methods
     virtual void displayInfo() const {
+        cout << "====================================\n";
+        cout << "||        THONG TIN CA NHAN       ||\n";
+        cout << "====================================\n";
         cout << "ID: " << id << "\n";
         cout << "Ten: " << fullName << "\n";
         cout << "Email: " << email << "\n";
