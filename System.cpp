@@ -85,13 +85,16 @@ void System::adminMenu(const Admin &a) {
     system("cls");
     int choice;
     do {
-
-        cout << "             MENU QUAN TRI VIEN                   \n";
-        cout << "Xin chao, " << a.getFullName() << "!\n\n";
-        cout << "1. Quan ly danh sach nguoi dung\n";
-        cout << "2. Xoa tai khoan nguoi dung\n";
-        cout << "3. Quan ly tin tuyen dung\n";
-        cout << "0. Dang xuat\n";
+        cout << "========================================\n";
+        cout << "||           MENU QUAN TRI VIEN       ||\n";
+        cout << "========================================\n";
+        cout << "Xin chao quan tri vien! " << a.getFullName() << "\n\n";
+        cout << "========================================\n";
+        cout << "||1. Quan ly danh sach nguoi dung     ||\n";
+        cout << "||2. Xoa tai khoan nguoi dung         ||\n";
+        cout << "||3. Quan ly tin tuyen dung           ||\n";
+        cout << "||0. Dang xuat                        ||\n";
+        cout << "========================================\n";
         cout << "\nChon: ";
         cin >> choice;
          system("cls");
@@ -143,23 +146,27 @@ void System::admin_ViewAllUsers() {
         }
     }
 
-
-    cout << "        DANH SACH NGUOI DUNG                      \n";
-    cout << "\n--- UNG VIEN (JOBSEEKER) ---\n";
+    cout << "========================================\n";
+    cout << "||        DANH SACH NGUOI DUNG         ||\n";
+    cout << "========================================\n";
+    cout << "-------------------------------\n";
+    cout << "|    UNG VIEN (JOBSEEKER)     |\n";
+    cout << "-------------------------------\n";
 
     if (jobSeekers.empty()) {
         cout << "Khong co ung vien nao.\n";
     } else {
         for (const auto &js: jobSeekers) {
-            cout << "\nID: " << js.getId() << " | Ho ten: " << js.getUsername() << " | Email: " << js.getEmail()
+            cout << "\nID: " << js.getId() << " | Username: " << js.getUsername() << " | Email: " << js.getEmail()
                  << " | Status: " << (js.getStatus() ? "Active" : "Inactive") << "\n";
             cout << "Ho ten: " << js.getFullName() << " | Tuoi: " << js.getAge() << " | Chuyen nganh: " << js.getMajor()
                  << " | KN: " << js.getYearsOfExperience() << " nam\n";
         }
-        cout << "\nTong: " << jobSeekers.size() << " ung vien\n";
+        cout << "\nTong: " << jobSeekers.size() << " ung vien\n\n\n";
     }
-
-    cout << "\n--- NHA TUYEN DUNG (EMPLOYER) ---\n";
+    cout << "------------------------------------\n";
+    cout << "|     NHA TUYEN DUNG (EMPLOYER)    |\n";
+    cout << "------------------------------------\n";
     if (employers.empty()) {
         cout << "Khong co nha tuyen dung nao.\n";
     } else {
@@ -169,7 +176,7 @@ void System::admin_ViewAllUsers() {
             cout << "Cong ty: " << emp.getCompanyName() << " | Nganh: " << emp.getIndustry()
                  << " | So tin: " << emp.getPostedJobIds().size() << "\n";
         }
-        cout << "\nTong: " << employers.size() << " nha tuyen dung\n";
+        cout << "\nTong: " << employers.size() << " nha tuyen dung\n\n\n";
     }
 }
 
@@ -229,7 +236,9 @@ void System::admin_ManageJobs() {
                 admin_removeJob();
                 break;
             case 3: {
-                cout << "\n--- TAT CA TIN TUYEN DUNG ---\n";
+                cout << "====================================\n";
+                cout << "||       TAT CA TIN TUYEN DUNG    ||\n";
+                cout << "====================================\n";
                 vector<Job> vJobs = Job::getAllJob();
                 if (vJobs.size() < 3) {
                     for (auto &j: vJobs) {
@@ -245,12 +254,12 @@ void System::admin_ManageJobs() {
                     int end = min(start + maxJobsPerPage, static_cast<int>(vJobs.size()));
 
                     for (int i = start; i < end; i++) {
-                        cout << (i + 1) << ".\n";
+                        cout <<"\nSTT:"<< (i + 1);;
                         vJobs[i].display();
                     }
 
                     cout << " ---- Trang " << p << "/" << totalPages << " ---\n";
-                    cout << " ---- ---- Vui long nhap so trang can den (0 de thoat): ";
+                    cout << " ---- ---- Vui long nhap so trang can den (Nhap 0 de thoat): ";
 
                     cin >> p;
                     system("cls");
@@ -290,7 +299,8 @@ void System::admin_FindJobs() {
             case 1:
 
                 cin.ignore();
-                cout << "\n ---- Nhap id tin tuyen dung: ";
+                cout << "===============================\n";
+                cout << "\n  Nhap id tin tuyen dung: ";
                 getline(cin, removeData);
 
                 Job::getJobById(removeData).display();
@@ -299,7 +309,8 @@ void System::admin_FindJobs() {
             case 2:
 
                 cin.ignore();
-                cout << "\n ---- Nhap username/email/so dien thoai cua nguoi dang: ";
+                cout << "========================================\n";
+                cout << "\n  Nhap username/email/so dien thoai cua nguoi dang: ";
                 getline(cin, removeData);
 
                 if (removeData.empty())
@@ -333,7 +344,8 @@ void System::admin_FindJobs() {
             case 3:
 
                 cin.ignore();
-                cout << "\n ---- Nhap ten cong ty tuyen dung: ";
+                cout << "========================================\n";
+                cout << "\n Nhap ten cong ty tuyen dung: ";
                 getline(cin, removeData);
 
                 result = Job::getJobByEmployerCompanyName(removeData);
