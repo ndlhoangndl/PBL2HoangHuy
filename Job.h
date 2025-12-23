@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "JobSeeker.h"
 #include "json.h"
@@ -268,11 +269,75 @@ public:
 
     void addAccepted(const vector<string> &applicantIds, const string &filename = "jobs.json") const {
         json data = PBLJson::loadList(filename);
-        for (auto &j : data) {
+        for (auto &j: data) {
             if (!j.value("id", "").empty() && j.value("id", "") == id) {
                 vector<string> acceptedIds = j.value("accepted", vector<string>{});
-                for (auto &i : applicantIds) {
+                for (auto &i: applicantIds) {
                     acceptedIds.push_back(i);
+                }
+                j.update({"accepted", acceptedIds});
+                PBLJson::saveList(data, filename);
+                return;
+            }
+        }
+    }
+
+    void removeAccepted(const string &applicantId, const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+        for (auto &j: data) {
+            if (!j.value("id", "").empty() && j.value("id", "") == id) {
+                vector<string> acceptedIds = j.value("accepted", vector<string>{});
+                for (int i = 0; i < acceptedIds.size(); i++) {
+                    if (applicantId == acceptedIds[i]) {
+                        acceptedIds.erase(acceptedIds.begin() + i);
+                        j.update({"accepted", acceptedIds});
+                        PBLJson::saveList(data, filename);
+                        return;
+                    }
+                }
+                j.update({"accepted", acceptedIds});
+                PBLJson::saveList(data, filename);
+                return;
+            }
+        }
+    }
+
+    void removeAccepted(vector<string> &applicantIds, const string &filename = "jobs.json") const {
+        json data = PBLJson::loadList(filename);
+        for (auto &j: data) {
+            if (!j.value("id", "").empty() && j.value("id", "") == id) {
+                vector<string> acceptedIds = j.value("accepted", vector<string>{});
+                std::sort(applicantIds.begin(), applicantIds.end(), [](const std::string& a, const std::string& b) {
+                    try {
+                        if (a.empty()) return false;
+                        if (b.empty()) return true;
+
+                        return std::stoi(a) < std::stoi(b);
+                    } catch (...) {
+                        return a < b;
+                    }
+                });
+                sort(acceptedIds.begin(), acceptedIds.end(), [](const std::string& a, const std::string& b) {
+                    try {
+                        if (a.empty()) return false;
+                        if (b.empty()) return true;
+
+                        return std::stoi(a) < std::stoi(b);
+                    } catch (...) {
+                        return a < b;
+                    }
+                });
+                for (int i = 0, j = 0; i < acceptedIds.size(); i++) {
+                    if (j == applicantIds.size()) break;
+                    if (applicantIds[j] == applicantIds[j+1]) {
+                        j++;
+                        i--;
+                        continue;
+                    }
+                    if (acceptedIds[i] == applicantIds[j]) {
+                        acceptedIds.erase(acceptedIds.begin() + i);
+                        j++;
+                    }
                 }
                 j.update({"accepted", acceptedIds});
                 PBLJson::saveList(data, filename);
