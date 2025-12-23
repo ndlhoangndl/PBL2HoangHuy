@@ -1720,8 +1720,8 @@ void System::loginUser() {
     cout << "\nUsername: ";
     getline(cin, username);
     cout << "Password: ";
-    // password = takePasswdFromUser();
-    getline(cin, password);
+    password = takePasswdFromUser();
+    // getline(cin, password);
 
     const string hashedPassword = sha256(password);
 
