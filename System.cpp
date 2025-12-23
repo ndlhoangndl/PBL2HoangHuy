@@ -447,10 +447,11 @@ void System::employerMenu(Employer &e) {
         cout << "4. Xoa tin tuyen dung\n";
         cout << "5. Xem danh sach ung vien ung tuyen\n";
         cout << "6. Chon ung vien trung tuyen.\n";
-        cout << "7. Dong tin tuyen dung\n";
-        cout << "8. Cap nhat thong tin cong ty\n";
+        cout << "7. Xoa ung vien da trung tuyen.\n";
+        cout << "8. Dong tin tuyen dung\n";
+        cout << "9. Cap nhat thong tin cong ty\n";
         // cout << "9. Xem lich su tin da dang\n";
-        cout << "9. Xem thong tin ca nhan\n";
+        cout << "10. Xem thong tin ca nhan\n";
         cout << "0. Dang xuat\n";
         cout << "\nChon: ";
         cin >> choice;
@@ -471,19 +472,25 @@ void System::employerMenu(Employer &e) {
             case 5:
                 employer_ViewApplications(e);
                 break;
+            case 6:
+                employer_SelectCandidate(e);
+                break;
+            case 7:
+                employer_RemoveAccepted(e);
+                break;
             // case 6:
             //     employer_FilterApplications(e);
             //     break;
-            case 7:
+            case 8:
                 employer_CloseJob(e);
                 break;
-            case 8:
+            case 9:
                 employer_UpdateProfile(e);
                 break;
             // case 9:
             //     employer_ViewHistory(e);
             //     break;
-            case 9:
+            case 10:
                 e.displayInfo();
                 break;
             case 0:
@@ -891,7 +898,7 @@ void System::employer_SelectCandidate(Employer &e) {
 
     vector<string> acceptedIds;
 
-    cout << "Nhap lan luot id cua cac ung vien trung tuyen < vd: 1 enter 2 enter >";
+    cout << "Nhap lan luot id cua cac ung vien trung tuyen < vd: 1 enter 2 enter >\n";
     int count = 0;
     while (true) {
         ++count;
@@ -899,8 +906,9 @@ void System::employer_SelectCandidate(Employer &e) {
         int choice;
         bool found = false;
         cin >> choice;
-        if (choice <= 0) break;
-        for (const auto &i : vApplications) {
+        if (choice <= 0)
+            break;
+        for (const auto &i: vApplications) {
             if (!i.getId().empty() && i.getId() == to_string(choice)) {
                 acceptedIds.push_back(to_string(choice));
                 found = true;
@@ -908,14 +916,15 @@ void System::employer_SelectCandidate(Employer &e) {
             }
         }
         if (!found) {
-            cout << "Ung vien voi id " << choice << " khong duoc tim thay trong danh sach ung vien cua job. Vui long kiem tra lai!\n";
+            cout << "Ung vien voi id " << choice
+                 << " khong duoc tim thay trong danh sach ung vien cua job. Vui long kiem tra lai!\n";
         }
     }
 
     job.addAccepted(acceptedIds);
 
     cout << "Nhung ung vien da duoc chon:\n";
-    for (const auto & _i : acceptedIds) {
+    for (const auto &_i: acceptedIds) {
         JobSeeker i = JobSeeker::getJobSeekerById(_i);
         cout << "---- Id: " << i.getId() << ":\n";
         cout << "Major: " << i.getMajor() << ".\n";
@@ -923,7 +932,6 @@ void System::employer_SelectCandidate(Employer &e) {
         cout << "So dien thoai: " << i.getPhone() << "\n";
     }
     cout << "---------\n";
-
 }
 
 void System::employer_RemoveAccepted(Employer &e) {
@@ -948,18 +956,21 @@ void System::employer_RemoveAccepted(Employer &e) {
 
     vector<JobSeeker> vApplications = [&]() {
         vector<JobSeeker> result;
-        for (auto & i : vAccepted) {result.push_back(JobSeeker::getJobSeekerById(i));}
+        result.reserve(vAccepted.size());
+        for (auto &i: vAccepted) {
+            result.push_back(JobSeeker::getJobSeekerById(i));
+        }
         return result;
     }();
 
-    cout << "Hien dang co " << vApplications.size() << " nguoi dang ung tuyen cho job voi id " << jobId << ": [";
+    cout << "Hien dang co " << vAccepted.size() << " nguoi dang ung tuyen cho job voi id " << jobId << ": [";
     for (int i = 0; i < vApplications.size(); i++) {
-        cout << vApplications[i].getId() << (i == vApplications.size() - 1 ? "]\n" : ", ");
+        cout << vAccepted[i] << (i == vAccepted.size() - 1 ? "]\n" : ", ");
     }
 
-    vector<string> removedIds;
+    vector<string> removeIds;
 
-    cout << "Nhap lan luot id cua cac ung vien can xoa khoi bang trung tuyen < vd: 1 enter 2 enter >";
+    cout << "Nhap lan luot id cua cac ung vien can xoa khoi bang trung tuyen < vd: 1 enter 2 enter >\n";
     int count = 0;
     while (true) {
         ++count;
@@ -967,23 +978,25 @@ void System::employer_RemoveAccepted(Employer &e) {
         int choice;
         bool found = false;
         cin >> choice;
-        if (choice <= 0) break;
-        for (const auto &i : vApplications) {
+        if (choice <= 0)
+            break;
+        for (const auto &i: vApplications) {
             if (!i.getId().empty() && i.getId() == to_string(choice)) {
-                removedIds.push_back(to_string(choice));
+                removeIds.push_back(to_string(choice));
                 found = true;
                 break;
             }
         }
         if (!found) {
-            cout << "Ung vien voi id " << choice << " khong duoc tim thay trong danh sach ung vien trung tuyen cua job. Vui long kiem tra lai!\n";
+            cout << "Ung vien voi id " << choice
+                 << " khong duoc tim thay trong danh sach ung vien trung tuyen cua job. Vui long kiem tra lai!\n";
         }
     }
 
-    job.addAccepted(removedIds);
+    job.removeAccepted(removeIds);
 
-    cout << "Nhung ung vien da duoc chon:\n";
-    for (const auto & _i : removedIds) {
+    cout << "Nhung ung vien da bi xoa:\n";
+    for (const auto &_i: removeIds) {
         JobSeeker i = JobSeeker::getJobSeekerById(_i);
         cout << "---- Id: " << i.getId() << ":\n";
         cout << "Major: " << i.getMajor() << ".\n";
@@ -1271,7 +1284,7 @@ void System::jobseeker_SearchJobs(JobSeeker &js) {
         case 1: {
             cout << "\n--- TAT CA CONG VIEC ---\n";
             if (vJobs.size() < 3) {
-                for (auto &j : vJobs) {
+                for (auto &j: vJobs) {
                     j.display();
                 }
                 break;
@@ -1279,13 +1292,11 @@ void System::jobseeker_SearchJobs(JobSeeker &js) {
 
             int p = 1;
             const int maxJobsPerPage = 3;
-            int totalPages = static_cast<int>(
-                ceil(static_cast<double>(vJobs.size()) / maxJobsPerPage)
-            );
+            int totalPages = static_cast<int>(ceil(static_cast<double>(vJobs.size()) / maxJobsPerPage));
 
             while (p > 0) {
                 int start = (p - 1) * maxJobsPerPage;
-                int end = min(start + maxJobsPerPage, (int)vJobs.size());
+                int end = min(start + maxJobsPerPage, (int) vJobs.size());
 
                 for (int i = start; i < end; i++) {
                     cout << (i + 1) << ".\n";
