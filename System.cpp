@@ -81,8 +81,10 @@ void Job::notAcceptedView() const {
 // ADMIN MENU
 // ========================================
 void System::adminMenu(const Admin &a) {
+    system("cls");
     int choice;
     do {
+
         cout << "             MENU QUAN TRI VIEN                   \n";
         cout << "Xin chao, " << a.getFullName() << "!\n\n";
         cout << "1. Quan ly danh sach nguoi dung\n";
@@ -91,6 +93,7 @@ void System::adminMenu(const Admin &a) {
         cout << "0. Dang xuat\n";
         cout << "\nChon: ";
         cin >> choice;
+         system("cls");
 
         switch (choice) {
             case 1:
@@ -213,6 +216,9 @@ void System::admin_ManageJobs() {
         cout << "0. Quay lai\n";
         cout << "Chon: ";
         cin >> choice;
+         system("cls");
+
+
 
         switch (choice) {
             case 1:
@@ -223,8 +229,7 @@ void System::admin_ManageJobs() {
                 break;
             case 3: {
                 cout << "\n--- TAT CA TIN TUYEN DUNG ---\n";
-                json data = PBLJson::loadList("jobs.json");
-                vector<Job> vJobs = Job::getAllJob(data);
+                vector<Job> vJobs = Job::getAllJob();
                 if (vJobs.size() < 3) {
                     for (auto &j: vJobs) {
                         j.display();
@@ -273,6 +278,7 @@ void System::admin_FindJobs() {
         cout << "0. Quay lai\n";
         cout << "Chon: ";
         cin >> choice;
+        system("cls");
         string removeData;
         std::regex emailRegex(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
         User target;
@@ -355,6 +361,7 @@ void System::admin_removeJob() {
         cout << "0. Quay lai\n";
         cout << "Chon: ";
         cin >> choice;
+        system("cls");
         string removeData;
         std::regex emailRegex(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
         User target;
@@ -431,9 +438,10 @@ void System::admin_removeJob() {
 // EMPLOYER MENU
 // ========================================
 void System::employerMenu(Employer &e) {
+    system("cls");
     int choice;
     do {
-
+        cout<<"===========================================================\n";
         cout << "            MENU NHA TUYEN DUNG                    \n";
 
         cout << "Xin chao, " << e.getUsername();
@@ -455,7 +463,7 @@ void System::employerMenu(Employer &e) {
         cout << "0. Dang xuat\n";
         cout << "\nChon: ";
         cin >> choice;
-
+        system("cls");
         switch (choice) {
             case 1:
                 employer_PostJob(e);
@@ -498,6 +506,7 @@ void System::employerMenu(Employer &e) {
                 break;
             default:
                 cout << "Lua chon khong hop le!\n";
+
         }
     } while (choice != 0);
 }
@@ -508,8 +517,8 @@ void System::employer_PostJob(Employer &e) {
     cout << "\n=== DANG TIN TUYEN DUNG ===\n";
 
     string title, description;
-    int jobType, minExp, minAge, maxAge;
-    double minSalary, maxSalary;
+    int jobType, minAge, maxAge;
+    double minSalary, maxSalary, minExp;
     vector<int> placeOfWork;
 
     cout << "Tieu de: ";
@@ -1121,23 +1130,29 @@ void System::employer_ViewHistory(Employer &e) {
 // JOBSEEKER MENU
 // ========================================
 void System::jobSeekerMenu(JobSeeker &js) {
+         system("cls");
     int choice;
     do {
+        cout << "\n";
+        cout << "===========================================================\n";
+        cout << "||                     MENU UNG VIEN                       ||\n";
+        cout << "===========================================================\n";
+        cout << "||  Xin chao, " << js.getUsername();
+        cout << string(45 - js.getUsername().length(), ' ') << "       ||\n";
+        cout << "||                                                        ||\n";
+        cout << "||  1. Cap nhat CV truc tuyen                             ||\n";
+        cout << "||  2. Chinh sua thong tin ca nhan                        ||\n";
+        cout << "||  3. Tim kiem viec lam                                  ||\n";
+        cout << "||  4. Ung tuyen viec lam                                 ||\n";
+        cout << "||  5. Xem trang thai ung tuyen                           ||\n";
+        cout << "||  6. Xem thong tin ca nhan                              ||\n";
+        cout << "||  0. Dang xuat                                          ||\n";
+        cout << "===========================================================\n";
+        cout << "Chon: ";
 
-        cout << "              MENU UNG VIEN                        \n";
-        cout << "Xin chao, " << js.getUsername() << "!\n\n";
-
-
-        cout << "1. Cap nhat CV truc tuyen\n";
-        cout << "2. Chinh sua thong tin ca nhan\n";
-        cout << "3. Tim kiem viec lam\n";
-        // cout << "4. Xem chi tiet tin tuyen dung\n";
-        cout << "4. Ung tuyen viec lam\n";
-        cout << "5. Xem trang thai ung tuyen\n";
-        cout << "6. Xem thong tin ca nhan\n";
-        cout << "0. Dang xuat\n";
-        cout << "\nChon: ";
         cin >> choice;
+         system("cls");
+
 
         switch (choice) {
             case 1:
@@ -1396,6 +1411,7 @@ void System::jobseeker_SearchJobs(JobSeeker &js) {
 
 // 3.2. Xem chi tiết tin tuyển dụng
 void System::jobseeker_ViewJobDetail(JobSeeker &js) {
+    system("cls");
     cin.ignore();
     cout << "\n=== XEM CHI TIET TIN TUYEN DUNG ===\n";
     cout << "Nhap Job ID: ";
@@ -1424,6 +1440,7 @@ void System::jobseeker_ViewJobDetail(JobSeeker &js) {
 // 3.3. Ứng tuyển việc làm
 void System::jobseeker_ApplyJob(JobSeeker &js) {
     cin.ignore();
+    system("cls");
     cout << "\n=== UNG TUYEN VIEC LAM ===\n";
 
     cout << "Nhap Job ID: ";
@@ -1457,12 +1474,13 @@ void System::jobseeker_ApplyJob(JobSeeker &js) {
     js.addAppliedJob(jobId);
     job.addApplicant(js.getId());
 
-    cout << "\n✓ Ung tuyen thanh cong!\n";
+    cout << "\n Ung tuyen thanh cong!\n";
     cout << "Ban se nhan duoc email tu nha tuyen dung khi da duoc chap nhan vao vong trong.\n";
 }
 
 // 3.3. Theo dõi trạng thái hồ sơ
 void System::jobseeker_ViewAppliesStatus(JobSeeker &js) {
+    system("cls");
     cout << "\n=== TRANG THAI UNG TUYEN ===\n";
 
     vector<string> appliedJobs = js.getAppliedJobs();
@@ -1521,6 +1539,7 @@ void System::jobseeker_ViewAppliesStatus(JobSeeker &js) {
 }
 // 3.4. Xem lịch sử ứng tuyển (tiếp)
 void System::jobseeker_ViewHistory(JobSeeker &js) {
+    system("cls");
     cout << "\n=== LICH SU UNG TUYEN ===\n";
 
     auto appliedJobs = js.getAppliedJobs();
@@ -1648,7 +1667,7 @@ void System::registerUser() {
     if (role == 1) {
         cout << "\n#### Dang ky Ung vien thanh cong!\n";
     } else if (role == 2) {
-        cout << "\n✓ Dang ky Nha tuyen dung thanh cong!\n";
+        cout << "\n Dang ky Nha tuyen dung thanh cong!\n";
     }
     cout << "Vui long dang nhap de su dung he thong.\n";
 }
@@ -1705,11 +1724,16 @@ void System::run() {
 
     int choice;
     do {
+
+        // ===== MENU CHINH =====
         cout << "\n";
-        cout << "     HE THONG TIM VIEC LAM TRUC TUYEN              \n";
-        cout << "1. Dang ky tai khoan\n";
-        cout << "2. Dang nhap\n";
-        cout << "0. Thoat\n";
+        cout << "****************************************\n";
+        cout << "*     HE THONG TIM VIEC LAM TRUC TUYEN  *\n";
+        cout << "*-------------------------------------- *\n";
+        cout << "* 1. Dang ky tai khoan                  *\n";
+        cout << "* 2. Dang nhap                          *\n";
+        cout << "* 0. Thoat                              *\n";
+        cout << "****************************************\n";
         cout << "\nChon: ";
         cin >> choice;
 
