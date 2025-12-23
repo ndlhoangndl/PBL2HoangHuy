@@ -1443,7 +1443,7 @@ void System::registerUser() {
     // regular expression
     const std::regex passRegex(R"((?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,})");
     const std::regex emailRegex(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
-
+    system("cls");
     cin.ignore();
     cout << "             DANG KY TAI KHOAN                   \n";
     cout << "\nChon loai tai khoan:\n";
@@ -1533,6 +1533,7 @@ void System::registerUser() {
 }
 
 void System::loginUser() {
+    system("cls");
     string username, password;
     cin.ignore();
 
@@ -1557,18 +1558,18 @@ void System::loginUser() {
         const string &role = user.role;
 
         if (role == "admin") {
-            cout << "\n✓ Dang nhap thanh cong voi quyen Admin!\n";
+            cout << "\n Dang nhap thanh cong voi quyen Admin!\n";
             adminMenu(admin);
             return;
         }
         if (role == "jobSeeker") {
-            cout << "\n✓ Dang nhap thanh cong!\n";
+            cout << "\n Dang nhap thanh cong!\n";
             JobSeeker _(user);
             jobSeekerMenu(_);
             return;
         }
         if (role == "employer") {
-            cout << "\n✓ Dang nhap thanh cong!\n";
+            cout << "\n Dang nhap thanh cong!\n";
             Employer _(user);
             employerMenu(_);
             return;

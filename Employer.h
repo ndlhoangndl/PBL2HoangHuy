@@ -64,6 +64,7 @@ public:
     }
 
     void displayInfo() const override {
+        system("cls");
         User::displayInfo();
         cout << "Vai tro: Nha tuyen dung\n";
         if (!companyName.empty()) {
