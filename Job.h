@@ -1,12 +1,12 @@
 #ifndef JOB_H
 #define JOB_H
 
+#include <algorithm>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "JobSeeker.h"
 #include "json.h"
@@ -82,10 +82,12 @@ public:
     [[nodiscard]] int getJobTypeId() const { return jobType; }
     [[nodiscard]] vector<string> getPlaceOfWork() const {
         vector<string> result;
+        result.reserve(placeOfWork.size());
         for (auto &i: placeOfWork)
-            result.push_back(placeOfWorkInterface[i]);
+            result.push_back(placeOfWorkInterface.at(i));
         return result;
     }
+
     [[nodiscard]] vector<int> getPlaceOfWorkId() const { return placeOfWork; }
     [[nodiscard]] double getMinSalary() const { return minSalary; }
     [[nodiscard]] double getMaxSalary() const { return maxSalary; }
@@ -119,7 +121,13 @@ public:
     void setApplicants(const vector<string> &_applicants = {}) { applicants = _applicants; }
     void setAccepted(const vector<string> &_accepted = {}) { accepted = _accepted; }
 
-    [[nodiscard]] string getJobTypeString() const { return jobTypeInterface[jobType]; }
+    [[nodiscard]] string getJobTypeString() const {
+        if (jobTypeInterface.count(jobType)) {
+            return jobTypeInterface.at(jobType);
+        }
+
+        return "Unknown (" + std::to_string(jobType) + ")";
+    }
 
     void display() const;
     void acceptedView() const;
@@ -305,21 +313,25 @@ public:
         json data = PBLJson::loadList(filename);
 
         // 1. Prepare applicantIds: Sort and remove duplicates first
-        auto numeric_sort = [](const std::string& a, const std::string& b) {
-            try { return std::stoi(a) < std::stoi(b); }
-            catch (...) { return a < b; }
+        auto numeric_sort = [](const std::string &a, const std::string &b) {
+            try {
+                return std::stoi(a) < std::stoi(b);
+            } catch (...) {
+                return a < b;
+            }
         };
         std::sort(applicantIds.begin(), applicantIds.end(), numeric_sort);
         applicantIds.erase(std::unique(applicantIds.begin(), applicantIds.end()), applicantIds.end());
 
-        for (auto &j : data) {
+        for (auto &j: data) {
             if (!j.value("id", "").empty() && j.value("id", "") == id) {
-                if (!j.contains("accepted") || !j["accepted"].is_array()) continue;
+                if (!j.contains("accepted") || !j["accepted"].is_array())
+                    continue;
 
                 json updated_accepted = json::array();
 
                 // 2. Filter the existing list
-                for (const auto& existingId : j["accepted"]) {
+                for (const auto &existingId: j["accepted"]) {
                     string current = existingId.get<string>();
 
                     // If the current ID is NOT in our removal list, keep it

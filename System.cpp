@@ -52,7 +52,7 @@ void Job::display() const {
     cout << "So nguoi ung tuyen: " << applicants.size() << "\n";
     cout << "Mo ta: " << description << "\n";
     cout << "Ngay dang: " << postedDate << "\n";
-    cout << "Cong ty: " << Employer::getEmployerById(id).getCompanyName() << "\n";
+    cout << "Cong ty: " << Employer::getEmployerById(employerId).getCompanyName() << "\n";
     cout << "========================================\n";
 }
 
@@ -65,7 +65,7 @@ void Job::acceptedView() const {
     cout << "Mo ta: " << description << "\n";
     cout << "Ngay dang: " << postedDate << "\n";
     cout << "Email nguoi dang: " << Employer::getEmployerById(id).getEmail() << "\n";
-    cout << "Cong ty: " << Employer::getEmployerById(id).getCompanyName() << "\n";
+    cout << "Cong ty: " << Employer::getEmployerById(employerId).getCompanyName() << "\n";
     cout << "========================================\n";
 }
 
@@ -75,7 +75,7 @@ void Job::notAcceptedView() const {
     cout << "Loai hinh: " << getJobTypeString() << "\n";
     cout << "Muc luong: " << std::fixed << std::setprecision(2) << minSalary << " - " << maxSalary << " VND\n";
     cout << "So nguoi ung tuyen: " << applicants.size() << "\n";
-    cout << "Cong ty: " << Employer::getEmployerById(id).getCompanyName() << "\n";
+    cout << "Cong ty: " << Employer::getEmployerById(employerId).getCompanyName() << "\n";
     cout << "========================================\n";
 }
 
@@ -1758,8 +1758,8 @@ void System::loginUser() {
     cout << "\nUsername: ";
     getline(cin, username);
     cout << "Password: ";
-    password = takePasswdFromUser();
-    // getline(cin, password);
+    // password = takePasswdFromUser();
+    getline(cin, password);
 
     const string hashedPassword = sha256(password);
 

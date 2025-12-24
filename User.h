@@ -33,8 +33,8 @@ public:
         createdAt(""), role(""), companyName("") {};
 
     User(const string &id, const string &username, const string &password, const string &email, const string &phone,
-         const string &fullName, const string &dateOfBirth, const bool isActive, const string &createdAt, const string &role,
-         const string &companyName = "") :
+         const string &fullName, const string &dateOfBirth, const bool isActive, const string &createdAt,
+         const string &role, const string &companyName = "") :
         id(id), username(username), password(password), email(email), phone(phone), fullName(fullName),
         dateOfBirth(dateOfBirth), isActive(isActive), createdAt(createdAt), companyName(companyName) {}
 
@@ -202,7 +202,7 @@ public:
                 };
 
                 User user(getStr("id"), getStr("username"), getStr("password"), getStr("email"), getStr("phone"),
-                          getStr("fullName"), getStr("dateOfBirth"), getBool("isActive", true), getStr("createdAt"),
+                          getStr("fullName"), getStr("dateOfBirth"), getBool("isActive", true), getStr("createdAt"), "",
                           getStr("companyName"));
 
                 user.role = getStr("role");
